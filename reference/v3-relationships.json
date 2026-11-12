@@ -1,0 +1,112 @@
+[
+  {
+    "source": "look-closer",
+    "target": "smash",
+    "label": "Customers bought more than breakable objects."
+  },
+  {
+    "source": "look-closer",
+    "target": "datadump",
+    "label": "What do two buttons reveal about behavior?"
+  },
+  {
+    "source": "look-closer",
+    "target": "escape",
+    "label": "A winning metric concealed the experience."
+  },
+  {
+    "source": "look-closer",
+    "target": "million",
+    "label": "Even a meaningless counter invites a strategy."
+  },
+  {
+    "source": "question-the-premise",
+    "target": "smash",
+    "label": "Was destroying things really the product?"
+  },
+  {
+    "source": "question-the-premise",
+    "target": "least",
+    "label": "What if the least popular choice wins?"
+  },
+  {
+    "source": "question-the-premise",
+    "target": "machine",
+    "label": "Can deletion be the creative act?"
+  },
+  {
+    "source": "question-the-premise",
+    "target": "hauling",
+    "label": "What if the supplier should belong to the business?"
+  },
+  {
+    "source": "actual-experience",
+    "target": "escape",
+    "label": "Success rates were not the same as satisfaction."
+  },
+  {
+    "source": "actual-experience",
+    "target": "wrong",
+    "label": "What does a story feel like when it arrives as a text?"
+  },
+  {
+    "source": "actual-experience",
+    "target": "future",
+    "label": "What does a message from yourself change?"
+  },
+  {
+    "source": "actual-experience",
+    "target": "tour",
+    "label": "The audience experiences spontaneity, not the route plan."
+  },
+  {
+    "source": "make-it-work",
+    "target": "hauling",
+    "label": "Supply was also a business-model problem."
+  },
+  {
+    "source": "make-it-work",
+    "target": "igb",
+    "label": "Inquiry response time matters to actual bookings."
+  },
+  {
+    "source": "make-it-work",
+    "target": "tour",
+    "label": "Tour stories need routes, timing, and trained guides."
+  },
+  {
+    "source": "make-it-work",
+    "target": "escape",
+    "label": "Set, puzzles, clues, and pacing work as one."
+  },
+  {
+    "source": "hauling",
+    "target": "smash",
+    "label": "In conversation with"
+  },
+  {
+    "source": "igb",
+    "target": "tour",
+    "label": "In conversation with"
+  },
+  {
+    "source": "wrong",
+    "target": "future",
+    "label": "In conversation with"
+  },
+  {
+    "source": "least",
+    "target": "machine",
+    "label": "In conversation with"
+  },
+  {
+    "source": "million",
+    "target": "datadump",
+    "label": "In conversation with"
+  },
+  {
+    "source": "mosaic",
+    "target": "machine",
+    "label": "In conversation with"
+  }
+]

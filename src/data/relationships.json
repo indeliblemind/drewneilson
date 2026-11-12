@@ -1,0 +1,68 @@
+[
+  {
+    "source": "smash",
+    "target": "job-smash",
+    "type": "context",
+    "label": "A story from this work."
+  },
+  {
+    "source": "hauling",
+    "target": "job-smash",
+    "type": "context",
+    "label": "A story from this work."
+  },
+  {
+    "source": "escape",
+    "target": "job-escape",
+    "type": "context",
+    "label": "A story from this work."
+  },
+  {
+    "source": "tour",
+    "target": "job-tour",
+    "type": "context",
+    "label": "A story from this work."
+  },
+  {
+    "source": "igb",
+    "target": "job-igb",
+    "type": "context",
+    "label": "A story from this work."
+  },
+  {
+    "source": "hauling",
+    "target": "smash",
+    "label": "Two stories from Smash*It.",
+    "type": "related"
+  },
+  {
+    "source": "igb",
+    "target": "tour",
+    "label": "The work behind the guest experience.",
+    "type": "related"
+  },
+  {
+    "source": "wrong",
+    "target": "future",
+    "label": "Stories delivered through a personal message.",
+    "type": "related"
+  },
+  {
+    "source": "least",
+    "target": "machine",
+    "label": "Experiments with changing the rules of participation.",
+    "type": "related"
+  },
+  {
+    "source": "million",
+    "target": "datadump",
+    "label": "Simple buttons, collective behavior.",
+    "type": "related"
+  },
+  {
+    "source": "mosaic",
+    "target": "machine",
+    "label": "A whole shaped by contributions from many people.",
+    "type": "related"
+  }
+]

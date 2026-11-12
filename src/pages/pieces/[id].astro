@@ -1,0 +1,23 @@
+---
+import { render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { getPortfolio } from '../../lib/content';
+export async function getStaticPaths() {
+ const { pieces, edges } = await getPortfolio();
+ return pieces.map(piece => ({ params: { id: piece.id }, props: { piece, pieces, edges } }));
+}
+interface Props { piece: CollectionEntry<'pieces'>; pieces: CollectionEntry<'pieces'>[]; edges: {source:string;target:string;label:string}[] }
+const { piece, pieces, edges } = Astro.props;
+const { Content } = await render(piece);
+const related = edges.filter(e => e.source === piece.id || e.target === piece.id);
+---
+<Base title={piece.data.title} description={piece.data.summary}>
+ <article class="page-body"><a href="/#work">← All work</a><p class="kicker" style="margin-top:30px">{piece.data.kind === 'job' ? 'Job / work context' : piece.data.kind === 'story' ? 'Story' : 'Thought experiment'} · {piece.data.status}</p><h1>{piece.data.title}</h1><p class="lead">{piece.data.summary}</p><Content />
+ <p class="draft-note">Working portfolio draft. Claims, status, and attribution await editorial review before publication.</p>
+ {related.length > 0 && <aside aria-label="Connected pieces"><h2>{piece.data.kind === 'job' ? 'Stories from this work' : 'Related work'}</h2><ul>{related.map(edge => {
+  const other = pieces.find(p => p.id === (edge.source === piece.id ? edge.target : edge.source))!;
+  return <li><a style="text-decoration:underline" href={`/pieces/${other.id}/`}>{other.data.title}</a><p class="connection-description">{edge.label}</p></li>;
+ })}</ul><a class="textlink" href="/#map">See the relationship map ↗</a></aside>}
+ </article>
+</Base>

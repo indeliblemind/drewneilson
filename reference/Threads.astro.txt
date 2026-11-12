@@ -1,0 +1,11 @@
+---
+import { getPortfolio } from '../lib/content';
+const { pieces, edges } = await getPortfolio();
+const ideas = pieces.filter(p => p.data.kind === 'idea');
+---
+<section class="lens-wrap" id="threads" aria-label="Explore connections across projects"><div class="band"><div class="band-inner">
+{ideas.map(idea => <details class="thread"><summary>{idea.data.title} ↗</summary><div class="thread-body"><p>{idea.data.summary}</p><div class="connection-grid">{edges.filter(e => e.source === idea.id || e.target === idea.id).map(edge => {
+ const piece = pieces.find(p => p.id === (edge.source === idea.id ? edge.target : edge.source))!;
+ return <a class="connection" href={`/pieces/${piece.id}/`}><strong>{piece.data.label ?? piece.data.title}</strong><small>{edge.label}</small><em>See the piece ↗</em></a>;
+})}</div></div></details>)}
+</div></div><div class="lens-detail"><div class="eyebrow">One thread, different work</div><h2>Follow a thread.</h2><p>Open an idea to see where it turns up across different projects. Or <a href="#map" style="text-decoration:underline">explore the relationship map ↓</a></p></div></section>

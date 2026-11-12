@@ -1,0 +1,6 @@
+---
+import { getPortfolio } from '../lib/content';
+const { pieces } = await getPortfolio();
+const jobs = pieces.filter(piece => piece.data.kind === 'job');
+---
+<section class="section cred" id="about"><div><div class="eyebrow">THE BORINGLY IMPORTANT PART</div><h2>Ideas are only interesting if you can do something with them.</h2><p>Creative work needs spreadsheets, staffing, budgets, operations, and uncomfortable decisions. I've done that part too.</p></div><div class="credentials">{jobs.map(job => <div class="credential"><strong><a href={`/pieces/${job.id}/`}>{job.data.title}</a><br/><span>{job.data.status}</span></strong><span>{job.data.summary}</span></div>)}<div class="credential"><strong>Education</strong><span>B.S., Marketing — Emerson College</span></div><p class="disclaimer" style="margin-top:18px">Open a role to read the stories from that work. Résumé download to come.</p></div></section>

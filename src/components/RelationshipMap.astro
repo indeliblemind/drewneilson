@@ -1,0 +1,142 @@
+---
+import { getPortfolio } from '../lib/content';
+const { pieces, edges } = await getPortfolio();
+const types = [{ id: 'job', label: 'Jobs', singular: 'Job / work context' }, { id: 'story', label: 'Stories', singular: 'Story' }, { id: 'thought-experiment', label: 'Thought experiments', singular: 'Thought experiment' }];
+const positions: Record<string, [number, number]> = {
+ 'job-smash': [200,190], smash:[105,85], hauling:[345,115],
+ 'job-escape':[130,390], escape:[105,525],
+ 'job-tour':[355,340], tour:[320,490],
+ 'job-igb':[490,525], igb:[485,365],
+ wrong:[660,135], future:[825,175], least:[720,380], machine:[850,470],
+ million:[640,560], datadump:[570,450], mosaic:[885,325],
+};
+for (const piece of pieces) { if (!positions[piece.id]) throw new Error(`Add a map position for ${piece.id} in RelationshipMap.astro`); }
+const labelLines = (label: string) => {
+ const words = label.split(' '); const lines: string[] = [''];
+ for (const word of words) { const last = lines.length - 1; if ((lines[last] + ' ' + word).trim().length > 23 && lines[last]) lines.push(word); else lines[last] = (lines[last] + ' ' + word).trim(); }
+ return lines;
+};
+const typeLabel = (kind: string) => types.find(t => t.id === kind)!.singular;
+---
+<section class="section relationship-section" id="map" aria-labelledby="map-title">
+ <div class="section-top"><h2 id="map-title">A little context.</h2><span>Where the work happened. What came out of it.</span></div>
+ <div class="atlas" data-atlas>
+  <div class="atlas-bar">
+   <div class="atlas-legend" aria-label="Node types">{types.map(type => <span><i class={`type-${type.id}`}></i>{type.label}</span>)}</div>
+   <div class="atlas-modes" hidden><button type="button" data-mode="map" aria-pressed="true">Map</button><button type="button" data-mode="list" aria-pressed="false">List</button></div>
+  </div>
+  <div class="atlas-layout">
+   <div class="atlas-stage" hidden>
+    <div class="atlas-canvas">
+     <svg viewBox="0 0 1000 660" class="atlas-svg" role="group" aria-label="Work and thought experiments. Select a node for details; drag the background to pan.">
+      <g class="atlas-lines" aria-hidden="true">{edges.map(edge => {
+       const a = positions[edge.source]; const b = positions[edge.target];
+       return <line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} data-from={edge.source} data-to={edge.target} class:list={['atlas-line', edge.type]} />;
+      })}</g>
+      <g>{pieces.map(piece => {
+       const pos = positions[piece.id]; const label = piece.data.label ?? piece.data.title;
+       const radius = piece.data.kind === 'job' ? 23 : 11;
+       return <g class:list={['atlas-node', `type-${piece.data.kind}`]} transform={`translate(${pos[0]},${pos[1]})`} data-id={piece.id} role="button" tabindex="0" aria-label={`${typeLabel(piece.data.kind)}: ${label}`} aria-pressed="false" aria-controls="atlas-detail">
+        <circle class="atlas-hit" r="38" /><circle class="atlas-halo" r={radius + 8}/><circle class="atlas-dot" r={radius} />
+        <text text-anchor="middle" y={radius + 24}>{labelLines(label).map((line,index) => <tspan x="0" dy={index === 0 ? 0 : 18}>{line}</tspan>)}</text>
+       </g>;
+      })}</g>
+     </svg>
+    </div>
+    <div class="atlas-controls"><span>Drag to pan · select to explore</span><div><button type="button" data-zoom="in" aria-label="Zoom in">+</button><button type="button" data-zoom="out" aria-label="Zoom out">−</button><button type="button" data-fit>Fit</button></div></div>
+   </div>
+   <div class="atlas-directory">
+    {types.map(type => <section><h3>{type.label}</h3>{pieces.filter(p => p.data.kind === type.id).map(piece => <a href={`/pieces/${piece.id}/`} data-list-id={piece.id}>{piece.data.label ?? piece.data.title}<span>{piece.data.status}</span></a>)}</section>)}
+   </div>
+   <aside class="atlas-detail" id="atlas-detail" aria-label="Selected item">
+    <div class="atlas-intro"><span class="eyebrow">A few ways in</span><h3>Work has a setting.<br/>Ideas have a life.</h3><p>The larger dark nodes are jobs. The smaller green nodes are stories from that work. Rust nodes are thought experiments.</p><p>Select any node to see what it is and how it relates to the rest.</p><p class="atlas-footnote">A line means a specific connection. Shared themes don’t need a line between everything.</p></div>
+    {pieces.map(piece => {
+     const related = edges.filter(e => e.source === piece.id || e.target === piece.id);
+     return <div class="atlas-profile" data-profile={piece.id} hidden>
+      <div class="atlas-profile-top"><span class:list={['atlas-type',`type-${piece.data.kind}`]}>{typeLabel(piece.data.kind)}</span><button type="button" data-clear aria-label="Clear selection">×</button></div>
+      <h3>{piece.data.label ?? piece.data.title}</h3><p class="atlas-status">{piece.data.status}</p><p>{piece.data.summary}</p>
+      <a class="atlas-read" href={`/pieces/${piece.id}/`}>{piece.data.kind === 'job' ? 'Stories from this work' : 'Read the piece'} ↗</a>
+      {related.length > 0 && <div class="atlas-related"><h4>{piece.data.kind === 'job' ? 'Stories from here' : 'Connections'}</h4>{related.map(edge => {
+       const other = pieces.find(p => p.id === (edge.source === piece.id ? edge.target : edge.source))!;
+       return <a href={`/pieces/${other.id}/`} data-follow={other.id}><span class:list={['atlas-related-type',`type-${other.data.kind}`]}>{typeLabel(other.data.kind)}</span><strong>{other.data.label ?? other.data.title}</strong><small>{edge.type === 'context' ? (other.data.kind === 'job' ? 'Where this story happened.' : 'A story from this work.') : edge.label}</small></a>;
+      })}</div>}
+     </div>;
+    })}
+   </aside>
+  </div>
+  <span class="atlas-announcement" role="status" aria-live="polite"></span>
+ </div>
+</section>
+<script>
+ const root = document.querySelector<HTMLElement>('[data-atlas]');
+ if (root) {
+  const svg = root.querySelector<SVGSVGElement>('.atlas-svg')!;
+  const nodes = Array.from(root.querySelectorAll<SVGGElement>('[data-id]'));
+  const lines = Array.from(root.querySelectorAll<SVGLineElement>('.atlas-line'));
+  const profiles = Array.from(root.querySelectorAll<HTMLElement>('[data-profile]'));
+  const directory = root.querySelector<HTMLElement>('.atlas-directory')!;
+  const stage = root.querySelector<HTMLElement>('.atlas-stage')!;
+  const intro = root.querySelector<HTMLElement>('.atlas-intro')!;
+  const modes = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-mode]'));
+  let selected: string | null = null;
+  function select(id: string | null) {
+   selected = id;
+   const connected = new Set<string>(id ? [id] : []);
+   lines.forEach(line => {
+    const active = !!id && (line.dataset.from === id || line.dataset.to === id);
+    line.classList.toggle('is-active', active);
+    if (active) { connected.add(line.dataset.from!); connected.add(line.dataset.to!); }
+   });
+   nodes.forEach(node => { node.classList.toggle('is-dim', !!id && !connected.has(node.dataset.id!)); node.setAttribute('aria-pressed', String(node.dataset.id === id)); });
+   profiles.forEach(panel => { panel.hidden = panel.dataset.profile !== id; });
+   intro.hidden = !!id;
+   root!.querySelectorAll<HTMLElement>('[data-list-id]').forEach(item => item.classList.toggle('is-selected', item.dataset.listId === id));
+   const node = nodes.find(n => n.dataset.id === id);
+   root!.querySelector('.atlas-announcement')!.textContent = node ? `Selected ${node.getAttribute('aria-label')}. Details shown beside the map.` : 'Selection cleared.';
+  }
+  function setMode(mode: string) {
+   stage.hidden = mode !== 'map'; directory.hidden = mode !== 'list';
+   modes.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mode === mode)));
+  }
+  modes.forEach(button => button.addEventListener('click', () => setMode(button.dataset.mode!)));
+  root.querySelector<HTMLElement>('.atlas-modes')!.hidden = false;
+  setMode(window.matchMedia('(max-width: 700px)').matches ? 'list' : 'map');
+  root.querySelectorAll<HTMLButtonElement>('[data-clear]').forEach(button => button.addEventListener('click', () => { const previous = selected; select(null); if (!stage.hidden) nodes.find(n => n.dataset.id === previous)?.focus(); }));
+  nodes.forEach(node => {
+   node.addEventListener('click', () => { if (!suppressClick) select(selected === node.dataset.id ? null : node.dataset.id!); });
+   node.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); select(selected === node.dataset.id ? null : node.dataset.id!); } });
+  });
+  root.querySelectorAll<HTMLAnchorElement>('[data-list-id], [data-follow]').forEach(link => link.addEventListener('click', event => {
+   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+   event.preventDefault(); const id = link.dataset.listId ?? link.dataset.follow!; select(id);
+   if (link.dataset.follow && !stage.hidden) nodes.find(n => n.dataset.id === id)?.focus();
+   if (window.matchMedia('(max-width: 700px)').matches) root!.querySelector('.atlas-detail')!.scrollIntoView({block:'nearest',behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'});
+  }));
+  root.addEventListener('keydown', event => { if (event.key === 'Escape') select(null); });
+  let view = { x:0, y:0, width:1000, height:660 };
+  function drawView() { svg.setAttribute('viewBox', `${view.x} ${view.y} ${view.width} ${view.height}`); }
+  function zoom(factor: number) {
+   const width = Math.max(380, Math.min(1500, view.width * factor)); const ratio = width / view.width;
+   view = { x: view.x + (view.width - width)/2, y: view.y + (view.height - view.height*ratio)/2, width, height: view.height*ratio }; drawView();
+  }
+  root.querySelector('[data-zoom="in"]')!.addEventListener('click', () => zoom(.8));
+  root.querySelector('[data-zoom="out"]')!.addEventListener('click', () => zoom(1.25));
+  root.querySelector('[data-fit]')!.addEventListener('click', () => { view = {x:0,y:0,width:1000,height:660};drawView(); });
+  let drag: { x:number; y:number; startX:number; startY:number; viewX:number; viewY:number; moved:boolean } | null = null;
+  let suppressClick = false;
+  svg.addEventListener('pointerdown', event => {
+   if (event.button !== 0 || (event.target as Element).closest('[data-id]')) return;
+   drag = {x:event.clientX,y:event.clientY,startX:event.clientX,startY:event.clientY,viewX:view.x,viewY:view.y,moved:false};
+   svg.setPointerCapture(event.pointerId);
+  });
+  svg.addEventListener('pointermove', event => {
+   if (!drag) return;
+   const scale = Math.max(view.width/svg.clientWidth, view.height/svg.clientHeight);
+   const dx = event.clientX - drag.startX; const dy = event.clientY - drag.startY;
+   drag.moved ||= Math.abs(dx)+Math.abs(dy)>5;
+   view.x=drag.viewX-dx*scale; view.y=drag.viewY-dy*scale; drawView();
+  });
+  function endDrag() { suppressClick=!!drag?.moved; drag=null; window.setTimeout(() => { suppressClick=false; },0); }
+  svg.addEventListener('pointerup', endDrag); svg.addEventListener('pointercancel', endDrag);
+ }
+</script>

@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import PieceCard from '../components/PieceCard.astro';
+import RelationshipMap from '../components/RelationshipMap.astro';
+import Digression from '../components/Digression.astro';
+import About from '../components/About.astro';
+import { getPortfolio } from '../lib/content';
+const { pieces } = await getPortfolio();
+---
+<Base title="Questions, work, experiments">
+ <Hero />
+ <section class="section" id="work"><div class="section-top"><h2>Stories from the work.</h2><span>Experience, decisions, and discoveries</span></div>
+ {pieces.filter(p => p.data.layout === 'featured').map(piece => <PieceCard piece={piece} />)}
+ <div class="cards">{pieces.filter(p => p.data.layout === 'story').map(piece => <PieceCard piece={piece} />)}</div>
+ <div class="cards additional-stories">{pieces.filter(p => p.data.kind === 'story' && p.data.layout === 'fragment').map(piece => <PieceCard piece={piece} />)}</div>
+ <div class="more-intro" id="experiments"><div><div class="eyebrow">Thought experiments</div><h3>What happens if…?</h3></div><p>Concepts, sketches, and playtested ideas. Each piece keeps its development stage and authorship visible.</p></div>
+ <div class="fragment-grid" id="fragments">{pieces.filter(p => p.data.kind === 'thought-experiment').map(piece => <PieceCard piece={piece} />)}</div>
+ <p class="more-note">Status labels describe how developed each piece is, not its importance. These summaries are provisional and should be fact-checked against your original notes before publication.</p>
+ </section>
+ <RelationshipMap /><Digression /><About />
+</Base>
