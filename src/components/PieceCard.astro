@@ -1,15 +1,16 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-interface Props { piece: CollectionEntry<'pieces'>; compact?: boolean }
-const { piece, compact = false } = Astro.props;
-const layout = compact ? 'fragment' : piece.data.layout;
+import {kindLabel} from '../lib/content';
+interface Props {piece:CollectionEntry<'pieces'>; layout?:'featured'|'secondary'|'compact'}
+const {piece,layout='compact'}=Astro.props;
 ---
-<article class:list={[layout === 'featured' ? 'featured project' : layout === 'story' ? 'story project' : 'fragment']} id={`project-${piece.id}`}>
-  {layout === 'featured' && <div class="feature-art"><div class="art-label">Smash*It · Business / Experience</div></div>}
-  <div class:list={[layout === 'featured' && 'feature-content']}>
-    <span class="piece-type">{piece.data.kind === 'thought-experiment' ? 'Thought experiment' : 'Story'}</span>
-    <span class:list={[layout === 'featured' ? 'kicker' : layout === 'story' ? 'num' : 'status']}>{piece.data.status}</span>
-    <h3>{piece.data.title}</h3><p>{piece.data.summary}</p>
-    <a class="textlink" href={`/pieces/${piece.id}/`}>Explore this piece ↗</a>
-  </div>
+<article class:list={[layout==='featured'?'featured project':layout==='secondary'?'story project':'fragment']} id={`project-${piece.id}`}>
+ {layout==='featured' && <div class="feature-art demo-art"><div class="art-label">Fictional project · demonstration</div></div>}
+ <div class:list={[layout==='featured' && 'feature-content']}>
+ <span class="piece-type">{kindLabel(piece.data.kind)}</span>
+ {piece.data.status && <span class="status">{piece.data.status}</span>}
+ <h3>{piece.data.title}</h3><p>{piece.data.summary}</p>
+ {piece.data.attribution && <small>{piece.data.attribution}</small>}
+ <a class="textlink" href={`/pieces/${piece.id}/`}>Explore this {piece.data.kind} ↗</a>
+ </div>
 </article>

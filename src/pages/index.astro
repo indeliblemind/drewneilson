@@ -1,22 +1,23 @@
 ---
 import Base from '../layouts/Base.astro';
-import Hero from '../components/Hero.astro';
 import PieceCard from '../components/PieceCard.astro';
 import RelationshipMap from '../components/RelationshipMap.astro';
-import Digression from '../components/Digression.astro';
 import About from '../components/About.astro';
 import { getPortfolio } from '../lib/content';
-const { pieces } = await getPortfolio();
+import { site } from '../data/site';
+const { pieces }=await getPortfolio();
+const projects=pieces.filter(p=>p.data.kind==='project');
+const featured=projects.find(p=>p.id===site.featured);
+const secondary=projects.filter(p=>site.secondary.includes(p.id));
+const rest=projects.filter(p=>p.id!==featured?.id && !secondary.includes(p));
 ---
-<Base title="Questions, work, experiments">
- <Hero />
- <section class="section" id="work"><div class="section-top"><h2>Stories from the work.</h2><span>Experience, decisions, and discoveries</span></div>
- {pieces.filter(p => p.data.layout === 'featured').map(piece => <PieceCard piece={piece} />)}
- <div class="cards">{pieces.filter(p => p.data.layout === 'story').map(piece => <PieceCard piece={piece} />)}</div>
- <div class="cards additional-stories">{pieces.filter(p => p.data.kind === 'story' && p.data.layout === 'fragment').map(piece => <PieceCard piece={piece} />)}</div>
- <div class="more-intro" id="experiments"><div><div class="eyebrow">Thought experiments</div><h3>What happens if…?</h3></div><p>Concepts, sketches, and playtested ideas. Each piece keeps its development stage and authorship visible.</p></div>
- <div class="fragment-grid" id="fragments">{pieces.filter(p => p.data.kind === 'thought-experiment').map(piece => <PieceCard piece={piece} />)}</div>
- <p class="more-note">Status labels describe how developed each piece is, not its importance. These summaries are provisional and should be fact-checked against your original notes before publication.</p>
+<Base title="Jobs, projects & ideas — demonstration">
+ <section class="hero demo-hero"><div><div class="eyebrow">A fictional collection · a real structure</div><h1>Work. Questions.<br/><em>Possibilities.</em></h1><p class="lead">A place for things made, things attempted, and ideas worth following. Explore how a project can lead to an idea—and where that idea goes next.</p><a class="scrolldown" href="#map"><span class="circle">↓</span> Explore the collection</a></div><div class="hero-side"><strong>Three kinds of subject.</strong><p>Jobs provide context. Projects are undertakings. Ideas are thoughts that can travel between them.</p><p>Each can tell its own story.</p></div></section>
+ <section class="section" id="work"><div class="section-top"><h2>Projects, at every stage.</h2><span>Professional · personal · unfinished</span></div>
+ {featured && <PieceCard piece={featured} layout="featured"/>}
+ <div class="cards">{secondary.map(piece=><PieceCard piece={piece} layout="secondary"/>)}</div>
+ <div class="fragment-grid demo-rest">{rest.map(piece=><PieceCard piece={piece}/>)}</div>
  </section>
- <RelationshipMap /><Digression /><About />
+ <section class="section demo-ideas" id="thinking"><div class="section-top"><h2>Ideas with somewhere to go.</h2><span>Observations · questions · discoveries</span></div><div class="fragment-grid" id="fragments">{pieces.filter(p=>p.data.kind==='idea').map(piece=><PieceCard piece={piece}/>)}</div></section>
+ <RelationshipMap/><About/>
 </Base>

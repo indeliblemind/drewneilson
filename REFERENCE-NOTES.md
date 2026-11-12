@@ -1,3 +1,7 @@
+# Historical design notes — superseded by the fictional demo
+
+The active content model is now Jobs / Projects / Ideas. See README.md for the current authoring workflow. The notes below document the earlier personal-content prototype; they are retained as history.
+
 # Current direction after V3 review
 
 The untouched prototype remains in `reference/drewneilson-homepage-v3.html`.
