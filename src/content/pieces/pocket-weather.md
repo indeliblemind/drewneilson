@@ -3,6 +3,7 @@ title: "Pocket Weather"
 kind: "project"
 status: "Sketch"
 summary: "A fictional pocket-sized object for noticing the weather without measuring it."
+topics: ["Observation"]
 draft: false
 ---
 

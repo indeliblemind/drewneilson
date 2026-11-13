@@ -3,6 +3,8 @@ title: "City Museum"
 kind: "job"
 role: "Visitor experience lead"
 summary: "A fictional museum role focused on helping visitors find their own routes through a collection."
+topics: ["Experience design", "Communication"]
+period: "2019–2022 (example)"
 draft: false
 ---
 

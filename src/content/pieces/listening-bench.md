@@ -6,6 +6,7 @@ status: "Unfinished concept"
 attribution: "Fictional personal project"
 summary: "A proposed bench that plays a neighborhood recording only after someone sits quietly."
 connections: [{"to": "participation", "relation": "related", "note": "Both explore how a small action changes someone’s role in an experience."}]
+topics: ["Participation", "Storytelling"]
 draft: false
 ---
 

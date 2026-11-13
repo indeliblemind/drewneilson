@@ -1,0 +1,8 @@
+---
+import '../styles/global.css';
+import Footer from '../components/Footer.astro';
+interface Props { title: string; description?: string }
+const { title, description = 'A fictional collection for exploring Jobs, Projects, Ideas, and their connections.' } = Astro.props;
+---
+<!doctype html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><meta name="description" content={description} /><meta name="robots" content="noindex, nofollow" /><title>{title} · Drew Neilson</title></head>
+<body><div class="demo-notice"><strong>Fictional demonstration</strong><span>All jobs, projects, ideas, and outcomes in this collection are made up. They are not Drew’s portfolio.</span></div><a class="skip" href="#main">Skip to content</a><header><a class="logo" href="/">Drew Neilson<span style="color:var(--accent)">.</span></a><nav class="nav" aria-label="Main navigation"><a href="/#resume">Résumé</a><a href="/#map">Connections</a></nav></header><main id="main"><slot /></main><Footer /></body></html>

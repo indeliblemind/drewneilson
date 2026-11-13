@@ -1,0 +1,191 @@
+---
+import { getPortfolio, kinds as types, kindLabel, edgeLabel } from '../lib/content';
+const { pieces, edges } = await getPortfolio();
+// Deterministic positions for every visible node, grouped by subject type.
+// Adding a content file never requires an entry here.
+const positions: Record<string, [number, number]> = {};
+const maxRows = Math.max(1, ...types.map(type => pieces.filter(p => p.data.kind === type.id).length));
+const mapHeight = Math.max(660, maxRows * 100 + 100);
+for (const [column, type] of types.entries()) {
+ const group = pieces.filter(p => p.data.kind === type.id);
+ group.forEach((piece,index) => { positions[piece.id] = [170 + column*330, (index+1)*mapHeight/(group.length+1) - 15]; });
+}
+const endpoint = (source:string,target:string) => {
+ const a=positions[source]; const b=positions[target]; const dx=b[0]-a[0]; const dy=b[1]-a[1]; const d=Math.hypot(dx,dy);
+ const r=(pieces.find(p=>p.id===target)!.data.kind==='job'?23:11)+7;
+ return [b[0]-dx/d*r,b[1]-dy/d*r];
+};
+const labelLines = (label: string) => {
+ const words = label.split(' '); const lines: string[] = [''];
+ for (const word of words) { const last = lines.length - 1; if ((lines[last] + ' ' + word).trim().length > 23 && lines[last]) lines.push(word); else lines[last] = (lines[last] + ' ' + word).trim(); }
+ return lines;
+};
+const typeLabel = kindLabel;
+---
+<section class="section relationship-section" id="map" aria-labelledby="map-title">
+ <div class="section-top"><h2 id="map-title">The connections behind the résumé.</h2><span data-map-count>All {pieces.length} subjects</span></div>
+ <p class="map-filter-note">Select a subject to focus the résumé and map together. <a href="#filter-heading">Choose a topic ↑</a></p>
+ <div class="map-focus-bar" hidden><span data-map-focus-label></span><a href="#resume">See in résumé ↑</a><button type="button" data-clear-map-focus>Clear focus</button></div>
+ <p class="resume-empty" data-map-empty hidden>No subjects match the current filters.</p>
+ <div class="atlas" data-atlas>
+  <div class="atlas-bar">
+   <div class="atlas-legend" aria-label="Node types">{types.map(type => <span><i class={`type-${type.id}`}></i>{type.label}</span>)}</div>
+   <div class="atlas-modes" hidden><button type="button" data-mode="map" aria-pressed="true">Map</button><button type="button" data-mode="list" aria-pressed="false">List</button></div>
+  </div>
+  <div class="atlas-layout">
+   <div class="atlas-stage" hidden>
+    <div class="atlas-canvas">
+     <svg viewBox={`0 0 1000 ${mapHeight}`} data-map-height={mapHeight} class="atlas-svg" role="group" aria-label="Jobs, projects, and ideas. Select a node for details; drag the background to pan.">
+      <defs><marker id="relationship-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="var(--accent)"/></marker></defs>
+      <g class="atlas-lines" aria-hidden="true">{edges.map(edge => {
+       const a = positions[edge.source]; const b = endpoint(edge.source,edge.target);
+       return <line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} data-from={edge.source} data-to={edge.target} data-directed={edge.directed ? "true" : "false"} class:list={['atlas-line', edge.type]} />;
+      })}</g>
+      <g>{pieces.map(piece => {
+       const pos = positions[piece.id]; const label = piece.data.label ?? piece.data.title;
+       const radius = piece.data.kind === 'job' ? 23 : 11;
+       return <g class:list={['atlas-node', `type-${piece.data.kind}`]} transform={`translate(${pos[0]},${pos[1]})`} data-id={piece.id} data-kind={piece.data.kind} data-x={pos[0]} data-y={pos[1]} role="button" tabindex="0" aria-label={`${typeLabel(piece.data.kind)}: ${label}`} aria-pressed="false" aria-controls="atlas-detail">
+        <circle class="atlas-hit" r="38" /><circle class="atlas-halo" r={radius + 8}/><circle class="atlas-dot" r={radius} />
+        <text text-anchor="middle" y={radius + 24}>{labelLines(label).map((line,index) => <tspan x="0" dy={index === 0 ? 0 : 18}>{line}</tspan>)}</text>
+       </g>;
+      })}</g>
+     </svg>
+    </div>
+    <div class="atlas-controls"><span>Drag to pan · select to explore</span><div><button type="button" data-zoom="in" aria-label="Zoom in">+</button><button type="button" data-zoom="out" aria-label="Zoom out">−</button><button type="button" data-fit>Fit</button></div></div>
+   </div>
+   <div class="atlas-directory">
+    {types.map(type => <section data-directory-group><h3>{type.label}</h3>{pieces.filter(p => p.data.kind === type.id).map(piece => <a href={`/pieces/${piece.id}/`} data-list-id={piece.id}>{piece.data.label ?? piece.data.title}<span>{piece.data.role ?? piece.data.status}</span></a>)}</section>)}
+   </div>
+   <aside class="atlas-detail" id="atlas-detail" aria-label="Selected item">
+    <div class="atlas-intro"><span class="eyebrow">A few ways in</span><h3>Same subjects.<br/>Different perspective.</h3><p>Dark nodes are Jobs, green nodes are Projects, and rust nodes are Ideas. They match the résumé above.</p><p>Select any node to see what it is and how it relates to the rest.</p><p class="atlas-footnote">Select a subject to see its relationships. Arrows show direction; “related to” makes no claim of influence.</p></div>
+    {pieces.map(piece => {
+     const related = edges.filter(e => e.source === piece.id || e.target === piece.id);
+     return <div class="atlas-profile" data-profile={piece.id} hidden>
+      <div class="atlas-profile-top"><span class:list={['atlas-type',`type-${piece.data.kind}`]}>{typeLabel(piece.data.kind)}</span><button type="button" data-clear aria-label="Clear selection">×</button></div>
+      <h3>{piece.data.label ?? piece.data.title}</h3><p class="atlas-status">{piece.data.role ?? piece.data.status}</p><p>{piece.data.summary}</p>{piece.data.attribution && <p class="atlas-status">{piece.data.attribution}</p>}
+      <a class="atlas-read" href={`/pieces/${piece.id}/`}>{'Read the page'} ↗</a>
+      {related.length === 0 && <p class="atlas-footnote">A standalone subject. No connections yet.</p>}
+      {related.length > 0 && <div class="atlas-related"><h4>{'Connections'}</h4><p class="atlas-footnote" data-no-visible-connections hidden>Other connections are outside the current filters.</p>{related.map(edge => {
+       const other = pieces.find(p => p.id === (edge.source === piece.id ? edge.target : edge.source))!;
+       return <a href={`/pieces/${other.id}/`} data-follow={other.id}><span class:list={['atlas-related-type',`type-${other.data.kind}`]}>{typeLabel(other.data.kind)}</span><strong>{other.data.label ?? other.data.title}</strong><small>{edgeLabel(edge,piece.id)}{edge.label && ` · ${edge.label}`}</small></a>;
+      })}</div>}
+     </div>;
+    })}
+   </aside>
+  </div>
+  <span class="atlas-announcement" role="status" aria-live="polite"></span>
+ </div>
+</section>
+<script>
+ const root = document.querySelector<HTMLElement>('[data-atlas]');
+ if (root) {
+  const svg = root.querySelector<SVGSVGElement>('.atlas-svg')!;
+  const nodes = Array.from(root.querySelectorAll<SVGGElement>('[data-id]'));
+  const lines = Array.from(root.querySelectorAll<SVGLineElement>('.atlas-line'));
+  const profiles = Array.from(root.querySelectorAll<HTMLElement>('[data-profile]'));
+  const directory = root.querySelector<HTMLElement>('.atlas-directory')!;
+  const stage = root.querySelector<HTMLElement>('.atlas-stage')!;
+  const intro = root.querySelector<HTMLElement>('.atlas-intro')!;
+  const modes = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-mode]'));
+  let selected: string | null = null;
+  let visibleIds=new Set(nodes.map(node=>node.dataset.id!));
+  function select(id: string | null, notify=true) {
+   selected = id && visibleIds.has(id) ? id : null;
+   id=selected;
+   const connected = new Set<string>(id ? [id] : []);
+   lines.forEach(line => {
+    const active = !!id && visibleIds.has(line.dataset.from!) && visibleIds.has(line.dataset.to!) && (line.dataset.from === id || line.dataset.to === id);
+    line.classList.toggle('is-active', active);
+    if (active && line.dataset.directed === 'true') line.setAttribute('marker-end','url(#relationship-arrow)'); else line.removeAttribute('marker-end');
+    if (active) { connected.add(line.dataset.from!); connected.add(line.dataset.to!); }
+   });
+   nodes.forEach(node => { node.classList.toggle('is-dim', !!id && !connected.has(node.dataset.id!)); node.setAttribute('aria-pressed', String(node.dataset.id === id)); });
+   profiles.forEach(panel => { panel.hidden = panel.dataset.profile !== id; });
+   intro.hidden = !!id;
+   root!.querySelectorAll<HTMLElement>('[data-list-id]').forEach(item => item.classList.toggle('is-selected', item.dataset.listId === id));
+   const node = nodes.find(n => n.dataset.id === id);
+   root!.querySelector('.atlas-announcement')!.textContent = node ? `Selected ${node.getAttribute('aria-label')}. Details shown beside the map.` : 'Selection cleared.';
+   if(notify)document.dispatchEvent(new CustomEvent('portfolio:select',{detail:{id:selected}}));
+  }
+  function setMode(mode: string) {
+   stage.hidden = mode !== 'map'; directory.hidden = mode !== 'list';
+   modes.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mode === mode)));
+  }
+  modes.forEach(button => button.addEventListener('click', () => setMode(button.dataset.mode!)));
+  root.querySelector<HTMLElement>('.atlas-modes')!.hidden = false;
+  setMode(window.matchMedia('(max-width: 700px)').matches ? 'list' : 'map');
+  root.querySelectorAll<HTMLButtonElement>('[data-clear]').forEach(button => button.addEventListener('click', () => { const previous = selected; select(null); if (!stage.hidden) nodes.find(n => n.dataset.id === previous)?.focus(); }));
+  nodes.forEach(node => {
+   node.addEventListener('click', () => { if (!suppressClick) select(selected === node.dataset.id ? null : node.dataset.id!); });
+   node.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); select(selected === node.dataset.id ? null : node.dataset.id!); } });
+  });
+  root.querySelectorAll<HTMLAnchorElement>('[data-list-id], [data-follow]').forEach(link => link.addEventListener('click', event => {
+   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+   event.preventDefault(); const id = link.dataset.listId ?? link.dataset.follow!; select(id);
+   if (link.dataset.follow && !stage.hidden) nodes.find(n => n.dataset.id === id)?.focus();
+   if (window.matchMedia('(max-width: 700px)').matches) root!.querySelector('.atlas-detail')!.scrollIntoView({block:'nearest',behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'});
+  }));
+  root.addEventListener('keydown', event => { if (event.key === 'Escape') select(null); });
+  const height = Number(svg.dataset.mapHeight);
+  let view = { x:0, y:0, width:1000, height };
+  function drawView() { svg.setAttribute('viewBox', `${view.x} ${view.y} ${view.width} ${view.height}`); }
+  function zoom(factor: number) {
+   const width = Math.max(380, Math.min(1500, view.width * factor)); const ratio = width / view.width;
+   view = { x: view.x + (view.width - width)/2, y: view.y + (view.height - view.height*ratio)/2, width, height: view.height*ratio }; drawView();
+  }
+  root.querySelector('[data-zoom="in"]')!.addEventListener('click', () => zoom(.8));
+  root.querySelector('[data-zoom="out"]')!.addEventListener('click', () => zoom(1.25));
+  function fitVisible(){
+   const active=nodes.filter(n=>visibleIds.has(n.dataset.id!));
+   if(active.length===nodes.length||!active.length){view={x:0,y:0,width:1000,height};drawView();return;}
+   const xs=active.map(n=>Number(n.dataset.x));const ys=active.map(n=>Number(n.dataset.y));
+   const width=Math.max(520,Math.max(...xs)-Math.min(...xs)+220);
+   const h=Math.max(400,Math.max(...ys)-Math.min(...ys)+200);
+   view={x:(Math.max(...xs)+Math.min(...xs)-width)/2,y:(Math.max(...ys)+Math.min(...ys)-h)/2,width,height:h};drawView();
+  }
+  root.querySelector('[data-fit]')!.addEventListener('click',fitVisible);
+  let lastLens='';
+  root.closest('#map')!.querySelector('[data-clear-map-focus]')!.addEventListener('click',()=>select(null));
+  svg.addEventListener('click',event=>{if(!(event.target as Element).closest('[data-id]')&&!suppressClick)select(null);});
+  document.addEventListener('portfolio:filter',(event)=>{
+   const detail=(event as CustomEvent<{visibleIds:string[];contextIds:string[];focusIds:string[];selectedId:string|null}>).detail;
+   visibleIds=new Set(detail.visibleIds);const contexts=new Set(detail.contextIds);
+   nodes.forEach(node=>{const visible=visibleIds.has(node.dataset.id!);node.toggleAttribute('hidden',!visible);node.setAttribute('tabindex',visible?'0':'-1');node.classList.toggle('is-context',contexts.has(node.dataset.id!));});
+   lines.forEach(line=>line.toggleAttribute('hidden',!visibleIds.has(line.dataset.from!)||!visibleIds.has(line.dataset.to!)));
+   root!.querySelectorAll<HTMLElement>('[data-list-id], [data-follow]').forEach(link=>{link.hidden=!visibleIds.has(link.dataset.listId??link.dataset.follow!);});
+   root!.querySelectorAll<HTMLElement>('[data-directory-group]').forEach(group=>{group.hidden=!Array.from(group.querySelectorAll<HTMLElement>('[data-list-id]')).some(link=>!link.hidden);});
+   root!.querySelectorAll<HTMLElement>('.atlas-profile').forEach(profile=>{
+    const note=profile.querySelector<HTMLElement>('[data-no-visible-connections]');
+    if(note)note.hidden=Array.from(profile.querySelectorAll<HTMLElement>('[data-follow]')).some(link=>!link.hidden);
+   });
+   root!.closest('#map')!.querySelector('[data-map-count]')!.textContent=`${visibleIds.size} ${visibleIds.size===1?'subject':'subjects'} shown · same lens as résumé`;
+   const empty=root!.closest('#map')!.querySelector<HTMLElement>('[data-map-empty]')!;empty.hidden=visibleIds.size>0;
+   root!.hidden=visibleIds.size===0;
+   select(detail.selectedId,false);
+   const focus=new Set(detail.focusIds);
+   nodes.forEach(node=>node.classList.toggle('is-dim',!!selected&&!focus.has(node.dataset.id!)));
+   root!.closest('#map')!.querySelector('[data-map-count]')!.textContent=selected?`${focus.size} in focus · ${visibleIds.size} available to explore`:`${visibleIds.size} subjects · same lens as résumé`;
+   const bar=root!.closest('#map')!.querySelector<HTMLElement>('.map-focus-bar')!;bar.hidden=!selected;
+   bar.querySelector('[data-map-focus-label]')!.textContent=selected?`Résumé focused on ${nodes.find(n=>n.dataset.id===selected)?.getAttribute('aria-label')}`:'';
+   // Retain pan/zoom on node changes; fit only when the actual lens changes.
+   const signature=[...visibleIds].sort().join('|');if(signature!==lastLens){fitVisible();lastLens=signature;}
+  });
+  document.dispatchEvent(new CustomEvent('portfolio:ready'));
+  let drag: { x:number; y:number; startX:number; startY:number; viewX:number; viewY:number; moved:boolean } | null = null;
+  let suppressClick = false;
+  svg.addEventListener('pointerdown', event => {
+   if (event.button !== 0 || (event.target as Element).closest('[data-id]')) return;
+   drag = {x:event.clientX,y:event.clientY,startX:event.clientX,startY:event.clientY,viewX:view.x,viewY:view.y,moved:false};
+   svg.setPointerCapture(event.pointerId);
+  });
+  svg.addEventListener('pointermove', event => {
+   if (!drag) return;
+   const scale = Math.max(view.width/svg.clientWidth, view.height/svg.clientHeight);
+   const dx = event.clientX - drag.startX; const dy = event.clientY - drag.startY;
+   drag.moved ||= Math.abs(dx)+Math.abs(dy)>5;
+   view.x=drag.viewX-dx*scale; view.y=drag.viewY-dy*scale; drawView();
+  });
+  function endDrag() { suppressClick=!!drag?.moved; drag=null; window.setTimeout(() => { suppressClick=false; },0); }
+  svg.addEventListener('pointerup', endDrag); svg.addEventListener('pointercancel', endDrag);
+ }
+</script>

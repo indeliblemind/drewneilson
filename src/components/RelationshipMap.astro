@@ -23,7 +23,10 @@ const labelLines = (label: string) => {
 const typeLabel = kindLabel;
 ---
 <section class="section relationship-section" id="map" aria-labelledby="map-title">
- <div class="section-top"><h2 id="map-title">Follow an idea.</h2><span>Jobs · Projects · Ideas</span></div>
+ <div class="section-top"><h2 id="map-title">The connections behind the résumé.</h2><span data-map-count>All {pieces.length} subjects</span></div>
+ <p class="map-filter-note">Select a subject to focus the résumé and map together. <a href="#filter-heading">Choose a topic ↑</a></p>
+ <div class="map-focus-bar" hidden><span data-map-focus-label></span><a href="#resume">See in résumé ↑</a><button type="button" data-clear-map-focus>Clear focus</button></div>
+ <p class="resume-empty" data-map-empty hidden>No subjects match the current filters.</p>
  <div class="atlas" data-atlas>
   <div class="atlas-bar">
    <div class="atlas-legend" aria-label="Node types">{types.map(type => <span><i class={`type-${type.id}`}></i>{type.label}</span>)}</div>
@@ -41,7 +44,7 @@ const typeLabel = kindLabel;
       <g>{pieces.map(piece => {
        const pos = positions[piece.id]; const label = piece.data.label ?? piece.data.title;
        const radius = piece.data.kind === 'job' ? 23 : 11;
-       return <g class:list={['atlas-node', `type-${piece.data.kind}`]} transform={`translate(${pos[0]},${pos[1]})`} data-id={piece.id} role="button" tabindex="0" aria-label={`${typeLabel(piece.data.kind)}: ${label}`} aria-pressed="false" aria-controls="atlas-detail">
+       return <g class:list={['atlas-node', `type-${piece.data.kind}`]} transform={`translate(${pos[0]},${pos[1]})`} data-id={piece.id} data-kind={piece.data.kind} data-x={pos[0]} data-y={pos[1]} role="button" tabindex="0" aria-label={`${typeLabel(piece.data.kind)}: ${label}`} aria-pressed="false" aria-controls="atlas-detail">
         <circle class="atlas-hit" r="38" /><circle class="atlas-halo" r={radius + 8}/><circle class="atlas-dot" r={radius} />
         <text text-anchor="middle" y={radius + 24}>{labelLines(label).map((line,index) => <tspan x="0" dy={index === 0 ? 0 : 18}>{line}</tspan>)}</text>
        </g>;
@@ -51,10 +54,10 @@ const typeLabel = kindLabel;
     <div class="atlas-controls"><span>Drag to pan · select to explore</span><div><button type="button" data-zoom="in" aria-label="Zoom in">+</button><button type="button" data-zoom="out" aria-label="Zoom out">−</button><button type="button" data-fit>Fit</button></div></div>
    </div>
    <div class="atlas-directory">
-    {types.map(type => <section><h3>{type.label}</h3>{pieces.filter(p => p.data.kind === type.id).map(piece => <a href={`/pieces/${piece.id}/`} data-list-id={piece.id}>{piece.data.label ?? piece.data.title}<span>{piece.data.role ?? piece.data.status}</span></a>)}</section>)}
+    {types.map(type => <section data-directory-group><h3>{type.label}</h3>{pieces.filter(p => p.data.kind === type.id).map(piece => <a href={`/pieces/${piece.id}/`} data-list-id={piece.id}>{piece.data.label ?? piece.data.title}<span>{piece.data.role ?? piece.data.status}</span></a>)}</section>)}
    </div>
    <aside class="atlas-detail" id="atlas-detail" aria-label="Selected item">
-    <div class="atlas-intro"><span class="eyebrow">A few ways in</span><h3>Work has a setting.<br/>Ideas have a life.</h3><p>Dark nodes are Jobs, green nodes are Projects, and rust nodes are Ideas. Any of them can tell a story.</p><p>Select any node to see what it is and how it relates to the rest.</p><p class="atlas-footnote">Select a subject to see its relationships. Arrows show direction; “related to” makes no claim of influence.</p></div>
+    <div class="atlas-intro"><span class="eyebrow">A few ways in</span><h3>Same subjects.<br/>Different perspective.</h3><p>Dark nodes are Jobs, green nodes are Projects, and rust nodes are Ideas. They match the résumé above.</p><p>Select any node to see what it is and how it relates to the rest.</p><p class="atlas-footnote">Select a subject to see its relationships. Arrows show direction; “related to” makes no claim of influence.</p></div>
     {pieces.map(piece => {
      const related = edges.filter(e => e.source === piece.id || e.target === piece.id);
      return <div class="atlas-profile" data-profile={piece.id} hidden>
@@ -62,7 +65,7 @@ const typeLabel = kindLabel;
       <h3>{piece.data.label ?? piece.data.title}</h3><p class="atlas-status">{piece.data.role ?? piece.data.status}</p><p>{piece.data.summary}</p>{piece.data.attribution && <p class="atlas-status">{piece.data.attribution}</p>}
       <a class="atlas-read" href={`/pieces/${piece.id}/`}>{'Read the page'} ↗</a>
       {related.length === 0 && <p class="atlas-footnote">A standalone subject. No connections yet.</p>}
-      {related.length > 0 && <div class="atlas-related"><h4>{'Connections'}</h4>{related.map(edge => {
+      {related.length > 0 && <div class="atlas-related"><h4>{'Connections'}</h4><p class="atlas-footnote" data-no-visible-connections hidden>Other connections are outside the current filters.</p>{related.map(edge => {
        const other = pieces.find(p => p.id === (edge.source === piece.id ? edge.target : edge.source))!;
        return <a href={`/pieces/${other.id}/`} data-follow={other.id}><span class:list={['atlas-related-type',`type-${other.data.kind}`]}>{typeLabel(other.data.kind)}</span><strong>{other.data.label ?? other.data.title}</strong><small>{edgeLabel(edge,piece.id)}{edge.label && ` · ${edge.label}`}</small></a>;
       })}</div>}
@@ -85,11 +88,13 @@ const typeLabel = kindLabel;
   const intro = root.querySelector<HTMLElement>('.atlas-intro')!;
   const modes = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-mode]'));
   let selected: string | null = null;
-  function select(id: string | null) {
-   selected = id;
+  let visibleIds=new Set(nodes.map(node=>node.dataset.id!));
+  function select(id: string | null, notify=true) {
+   selected = id && visibleIds.has(id) ? id : null;
+   id=selected;
    const connected = new Set<string>(id ? [id] : []);
    lines.forEach(line => {
-    const active = !!id && (line.dataset.from === id || line.dataset.to === id);
+    const active = !!id && visibleIds.has(line.dataset.from!) && visibleIds.has(line.dataset.to!) && (line.dataset.from === id || line.dataset.to === id);
     line.classList.toggle('is-active', active);
     if (active && line.dataset.directed === 'true') line.setAttribute('marker-end','url(#relationship-arrow)'); else line.removeAttribute('marker-end');
     if (active) { connected.add(line.dataset.from!); connected.add(line.dataset.to!); }
@@ -100,6 +105,7 @@ const typeLabel = kindLabel;
    root!.querySelectorAll<HTMLElement>('[data-list-id]').forEach(item => item.classList.toggle('is-selected', item.dataset.listId === id));
    const node = nodes.find(n => n.dataset.id === id);
    root!.querySelector('.atlas-announcement')!.textContent = node ? `Selected ${node.getAttribute('aria-label')}. Details shown beside the map.` : 'Selection cleared.';
+   if(notify)document.dispatchEvent(new CustomEvent('portfolio:select',{detail:{id:selected}}));
   }
   function setMode(mode: string) {
    stage.hidden = mode !== 'map'; directory.hidden = mode !== 'list';
@@ -129,7 +135,42 @@ const typeLabel = kindLabel;
   }
   root.querySelector('[data-zoom="in"]')!.addEventListener('click', () => zoom(.8));
   root.querySelector('[data-zoom="out"]')!.addEventListener('click', () => zoom(1.25));
-  root.querySelector('[data-fit]')!.addEventListener('click', () => { view = {x:0,y:0,width:1000,height};drawView(); });
+  function fitVisible(){
+   const active=nodes.filter(n=>visibleIds.has(n.dataset.id!));
+   if(active.length===nodes.length||!active.length){view={x:0,y:0,width:1000,height};drawView();return;}
+   const xs=active.map(n=>Number(n.dataset.x));const ys=active.map(n=>Number(n.dataset.y));
+   const width=Math.max(520,Math.max(...xs)-Math.min(...xs)+220);
+   const h=Math.max(400,Math.max(...ys)-Math.min(...ys)+200);
+   view={x:(Math.max(...xs)+Math.min(...xs)-width)/2,y:(Math.max(...ys)+Math.min(...ys)-h)/2,width,height:h};drawView();
+  }
+  root.querySelector('[data-fit]')!.addEventListener('click',fitVisible);
+  let lastLens='';
+  root.closest('#map')!.querySelector('[data-clear-map-focus]')!.addEventListener('click',()=>select(null));
+  svg.addEventListener('click',event=>{if(!(event.target as Element).closest('[data-id]')&&!suppressClick)select(null);});
+  document.addEventListener('portfolio:filter',(event)=>{
+   const detail=(event as CustomEvent<{visibleIds:string[];contextIds:string[];focusIds:string[];selectedId:string|null}>).detail;
+   visibleIds=new Set(detail.visibleIds);const contexts=new Set(detail.contextIds);
+   nodes.forEach(node=>{const visible=visibleIds.has(node.dataset.id!);node.toggleAttribute('hidden',!visible);node.setAttribute('tabindex',visible?'0':'-1');node.classList.toggle('is-context',contexts.has(node.dataset.id!));});
+   lines.forEach(line=>line.toggleAttribute('hidden',!visibleIds.has(line.dataset.from!)||!visibleIds.has(line.dataset.to!)));
+   root!.querySelectorAll<HTMLElement>('[data-list-id], [data-follow]').forEach(link=>{link.hidden=!visibleIds.has(link.dataset.listId??link.dataset.follow!);});
+   root!.querySelectorAll<HTMLElement>('[data-directory-group]').forEach(group=>{group.hidden=!Array.from(group.querySelectorAll<HTMLElement>('[data-list-id]')).some(link=>!link.hidden);});
+   root!.querySelectorAll<HTMLElement>('.atlas-profile').forEach(profile=>{
+    const note=profile.querySelector<HTMLElement>('[data-no-visible-connections]');
+    if(note)note.hidden=Array.from(profile.querySelectorAll<HTMLElement>('[data-follow]')).some(link=>!link.hidden);
+   });
+   root!.closest('#map')!.querySelector('[data-map-count]')!.textContent=`${visibleIds.size} ${visibleIds.size===1?'subject':'subjects'} shown · same lens as résumé`;
+   const empty=root!.closest('#map')!.querySelector<HTMLElement>('[data-map-empty]')!;empty.hidden=visibleIds.size>0;
+   root!.hidden=visibleIds.size===0;
+   select(detail.selectedId,false);
+   const focus=new Set(detail.focusIds);
+   nodes.forEach(node=>node.classList.toggle('is-dim',!!selected&&!focus.has(node.dataset.id!)));
+   root!.closest('#map')!.querySelector('[data-map-count]')!.textContent=selected?`${focus.size} in focus · ${visibleIds.size} available to explore`:`${visibleIds.size} subjects · same lens as résumé`;
+   const bar=root!.closest('#map')!.querySelector<HTMLElement>('.map-focus-bar')!;bar.hidden=!selected;
+   bar.querySelector('[data-map-focus-label]')!.textContent=selected?`Résumé focused on ${nodes.find(n=>n.dataset.id===selected)?.getAttribute('aria-label')}`:'';
+   // Retain pan/zoom on node changes; fit only when the actual lens changes.
+   const signature=[...visibleIds].sort().join('|');if(signature!==lastLens){fitVisible();lastLens=signature;}
+  });
+  document.dispatchEvent(new CustomEvent('portfolio:ready'));
   let drag: { x:number; y:number; startX:number; startY:number; viewX:number; viewY:number; moved:boolean } | null = null;
   let suppressClick = false;
   svg.addEventListener('pointerdown', event => {

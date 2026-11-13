@@ -3,6 +3,8 @@ title: "Harbor Studio"
 kind: "job"
 role: "Experience designer"
 summary: "A fictional two-year role designing public spaces, visitor journeys, and small experiments."
+topics: ["Experience design", "Participation"]
+period: "2022–2025 (example)"
 draft: false
 ---
 

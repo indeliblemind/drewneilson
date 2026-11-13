@@ -3,6 +3,7 @@ title: "Participation begins with a small choice"
 kind: "idea"
 label: "Small choices"
 summary: "A fictional observation about how modest decisions can turn a visitor into a participant."
+topics: ["Participation"]
 draft: false
 ---
 

@@ -3,6 +3,7 @@ title: "Clarity can be subtraction"
 kind: "idea"
 summary: "An observation: sometimes the most helpful instruction is the decision an environment removes."
 connections: [{"to": "field-guide", "relation": "informed", "note": "The guide offered fewer starting choices and removed the prescribed sequence."}, {"to": "thresholds", "relation": "related", "note": "Both ask how much structure helps someone begin."}]
+topics: ["Communication"]
 draft: false
 ---
 

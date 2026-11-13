@@ -7,6 +7,10 @@ const pieces = defineCollection({
   title: z.string().min(1), label: z.string().optional(),
   kind: z.enum(['job', 'project', 'idea']), summary: z.string().min(1),
   status: z.string().optional(), role: z.string().optional(), attribution: z.string().optional(),
+  period: z.string().optional(),
+  startDate: z.string().regex(/^\d{4}(-(0[1-9]|1[0-2]))?$/).optional(),
+  endDate: z.string().regex(/^\d{4}(-(0[1-9]|1[0-2]))?$/).optional(),
+  topics: z.array(z.string().trim().min(1)).default([]),
   draft: z.boolean().default(true),
   connections: z.array(z.object({
    to: z.string().min(1), relation: z.enum(['part-of', 'led-to', 'informed', 'related']),

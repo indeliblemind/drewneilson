@@ -4,3 +4,6 @@ dist/
 .DS_Store
 .env
 .env.*
+
+# Local scratch files and preview cache backups
+work/

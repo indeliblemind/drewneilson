@@ -5,6 +5,7 @@ label: "Field Guide"
 status: "Completed"
 summary: "A fictional museum guide offering three useful starting points instead of a single correct itinerary."
 connections: [{"to": "city-museum", "relation": "part-of"}, {"to": "participation", "relation": "led-to", "note": "Visitors used the starting points to build journeys the team had not planned."}]
+topics: ["Communication", "Participation"]
 draft: false
 ---
 

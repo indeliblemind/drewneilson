@@ -31,6 +31,16 @@ draft: true
 # This is descriptive text, not another node type. Omit it if it isn't useful.
 # status: "In progress"
 
+# OPTIONAL: topics used by the shared résumé/map filters. Omit if not needed.
+# topics: ["Experience design", "Participation"]
+
+# OPTIONAL: a date range for a Job; omit rather than invent dates.
+# period: "2021–2024"
+# For a proportional timeline bar, use dates with only the precision you know:
+# startDate: "2021-03"
+# endDate: "2024-08"
+# YYYY also works. Omit endDate for an ongoing role.
+
 # OPTIONAL: your role, usually for a Job.
 # role: "Founder and operator"
 

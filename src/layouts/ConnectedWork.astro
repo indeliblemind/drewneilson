@@ -1,0 +1,6 @@
+---
+import '../styles/connected-work.css';
+interface Props {title:string;description?:string}
+const {title,description='An interactive demonstration of connected jobs, projects, and ideas.'}=Astro.props;
+---
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><meta name="description" content={description}/><title>{title} — Drew Neilson</title></head><body><a class="skip-link" href="#main">Skip to content</a><div class="wrap"><main id="main"><slot/></main></div></body></html>

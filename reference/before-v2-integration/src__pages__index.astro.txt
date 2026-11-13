@@ -1,0 +1,87 @@
+---
+import Base from '../layouts/Base.astro';
+import RelationshipMap from '../components/RelationshipMap.astro';
+import ResumeEntry from '../components/ResumeEntry.astro';
+import {getPortfolio,kinds} from '../lib/content';
+import {site} from '../data/site';
+const {pieces,edges}=await getPortfolio();
+const jobs=pieces.filter(p=>p.data.kind==='job').sort((a,b)=>{
+ const rank=(id:string)=>{const i=site.resumeOrder.indexOf(id);return i<0?Infinity:i;};
+ return rank(a.id)-rank(b.id)||a.data.title.localeCompare(b.data.title);
+});
+const jobIds=new Set(jobs.map(j=>j.id));
+// Nest a subject under its first declared Job context; show each subject once.
+const parentFor=new Map<string,string>();
+for(const edge of edges)if(edge.type==='part-of'&&jobIds.has(edge.target)&&!jobIds.has(edge.source)&&!parentFor.has(edge.source))parentFor.set(edge.source,edge.target);
+const independent=pieces.filter(p=>p.data.kind!=='job'&&!parentFor.has(p.id));
+const topics=[...new Set(pieces.flatMap(p=>p.data.topics??[]))].sort((a,b)=>a.localeCompare(b));
+const filterData=pieces.map(p=>({id:p.id,kind:p.data.kind,topics:p.data.topics??[],search:[p.data.title,p.data.label,p.data.summary,p.data.role,p.data.status,p.data.attribution,...(p.data.topics??[])].filter(Boolean).join(' ')}));
+const contexts=edges.filter(e=>e.type==='part-of'&&jobIds.has(e.target)&&!jobIds.has(e.source)).map(e=>({child:e.source,parent:e.target}));
+---
+<Base title="Résumé & connections">
+ <div class="resume-page" data-portfolio>
+  <section class="profile-panel" aria-labelledby="profile-name">
+   <div><p class="eyebrow">Experience · projects · ideas</p><h1 id="profile-name">{site.profile.name}</h1><p class="profile-headline">{site.profile.headline}</p><p class="profile-summary">{site.profile.summary}</p><div class="profile-links"><a href="#resume">Read the résumé ↓</a><a href="#map">Explore the connections ↓</a></div></div>
+   <div class="portrait-placeholder" role="img" aria-label="Portrait placeholder; no photograph supplied"><svg viewBox="0 0 160 160" aria-hidden="true"><circle cx="80" cy="60" r="24"/><path d="M31 145c0-35 18-54 49-54s49 19 49 54"/></svg><span>Portrait to come</span></div>
+  </section>
+  <section class="shared-filters" aria-labelledby="filter-heading" hidden>
+   <div class="lens-types" role="group" aria-label="Subject types"><button type="button" data-kind="all" aria-pressed="true">Everything</button>{kinds.map(k=><button type="button" data-kind={k.id} aria-pressed="false">{k.label}</button>)}</div>
+   <div class="lens-topics" role="group" aria-label="Topics"><span id="filter-heading">Follow a topic</span>{topics.map(topic=><button type="button" data-topic={topic} aria-pressed="false">#{topic}</button>)}</div>
+   <div class="lens-current"><span data-focus-description>Explore the résumé or select a map node.</span><button type="button" data-clear-focus hidden>Clear focus</button><button type="button" data-reset-filters hidden>Show everything</button></div>
+   <p class="filter-status" data-filter-status role="status" aria-live="polite">All {pieces.length} subjects shown</p>
+  </section>
+  <section class="resume-section" id="resume" aria-labelledby="resume-heading">
+   <div class="resume-section-title"><h2 id="resume-heading">Résumé</h2><span>Professional context, with the work behind it.</span></div>
+   <p class="resume-demo-note">The roles and dates below are demonstration content. Your profile and portfolio writing can replace them later.</p>
+   <div id="work" class="resume-experience" data-resume-group>
+    <h3 class="resume-group-heading">Experience</h3>
+    {jobs.map(job=><section class="resume-job-group" data-job-group={job.id}><ResumeEntry piece={job}/><div class="resume-job-work">{pieces.filter(p=>parentFor.get(p.id)===job.id).map(piece=><ResumeEntry piece={piece}/>)}</div></section>)}
+   </div>
+   {(['project','idea'] as const).map(kind=><section class="resume-independent" id={kind==='idea'?'thinking':'independent-projects'} data-resume-group><h3 class="resume-group-heading">{kind==='project'?'Independent projects':'Ideas & observations'}</h3>{independent.filter(p=>p.data.kind===kind).map(piece=><ResumeEntry piece={piece}/>)}</section>)}
+   <p class="resume-empty" data-resume-empty hidden>No subjects match these filters. Try another topic or reset the filters.</p>
+  </section>
+  <div class="resume-to-map"><span>Another way to read the same collection</span><a href="#map">Follow the connections ↓</a></div>
+ </div>
+ <RelationshipMap/>
+ <script type="application/json" id="portfolio-data" set:html={JSON.stringify({nodes:filterData,contexts,edges:edges.map(e=>({source:e.source,target:e.target}))}).replace(/</g,'\\u003c')}/>
+</Base>
+<script>
+ import {portfolioView,type FilterNode,type ContextLink,type FocusEdge} from '../lib/filters';
+ const root=document.querySelector<HTMLElement>('[data-portfolio]');
+ const element=document.querySelector('#portfolio-data');
+ if(root&&element){
+  const data=JSON.parse(element.textContent!) as {nodes:FilterNode[];contexts:ContextLink[];edges:FocusEdge[]};
+  let kind='all',topic='all',selected:string|null=null;
+  const names=new Map(data.nodes.map(node=>[node.id,document.querySelector(`[data-id="${node.id}"]`)?.getAttribute('aria-label')??node.id]));
+  function update(){
+   const view=portfolioView(data.nodes,data.contexts,data.edges,{query:'',kind,topic},selected);selected=view.selected;
+   root!.querySelectorAll<HTMLElement>('[data-resume-id]').forEach(entry=>{
+    const id=entry.dataset.resumeId!;entry.hidden=!view.focus.has(id);entry.classList.toggle('is-context',view.contextOnly.has(id));entry.classList.toggle('is-focused',id===selected);
+    const note=entry.querySelector<HTMLElement>('.resume-context-note');if(note)note.hidden=!view.contextOnly.has(id);
+   });
+   root!.querySelectorAll<HTMLElement>('[data-job-group], [data-resume-group]').forEach(group=>{group.hidden=!Array.from(group.querySelectorAll<HTMLElement>('[data-resume-id]')).some(e=>!e.hidden);});
+   root!.querySelector<HTMLElement>('[data-resume-empty]')!.hidden=view.focus.size>0;
+   root!.querySelectorAll<HTMLButtonElement>('[data-kind]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.kind===kind)));
+   root!.querySelectorAll<HTMLButtonElement>('[data-topic]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.topic===topic)));
+   root!.querySelectorAll<HTMLButtonElement>('[data-focus-id]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.focusId===selected)));
+   root!.querySelector<HTMLElement>('[data-clear-focus]')!.hidden=!selected;
+   root!.querySelector<HTMLElement>('[data-reset-filters]')!.hidden=kind==='all'&&topic==='all'&&!selected;
+   root!.querySelector('[data-focus-description]')!.textContent=selected?`Focused on ${names.get(selected)} and its connections.`:'Select a subject in either view to follow its connections.';
+   root!.querySelector('[data-filter-status]')!.textContent=selected?`${view.focus.size} ${view.focus.size===1?'subject':'subjects'} in focus · résumé and map connected`:`${view.visible.size} ${view.visible.size===1?'subject':'subjects'} · résumé and map connected`;
+   document.dispatchEvent(new CustomEvent('portfolio:filter',{detail:{visibleIds:[...view.visible],contextIds:[...view.contextOnly],focusIds:[...view.focus],selectedId:selected}}));
+  }
+  root.querySelectorAll<HTMLButtonElement>('[data-kind]').forEach(button=>button.addEventListener('click',()=>{kind=button.dataset.kind!;update();}));
+  root.querySelectorAll<HTMLButtonElement>('[data-topic]').forEach(button=>button.addEventListener('click',()=>{topic=topic===button.dataset.topic?'all':button.dataset.topic!;update();}));
+  root.querySelector('[data-clear-focus]')!.addEventListener('click',()=>{selected=null;update();});
+  root.querySelector('[data-reset-filters]')!.addEventListener('click',()=>{kind='all';topic='all';selected=null;update();});
+  root.querySelectorAll<HTMLButtonElement>('[data-focus-id]').forEach(button=>button.addEventListener('click',()=>{selected=selected===button.dataset.focusId?null:button.dataset.focusId!;update();}));
+  document.addEventListener('portfolio:select',event=>{
+   const map=document.querySelector('#map')!;const before=map.getBoundingClientRect();
+   selected=(event as CustomEvent<{id:string|null}>).detail.id;update();
+   // Keep the map in place while résumé rows above it change height.
+   if(before.top<innerHeight&&before.bottom>0)requestAnimationFrame(()=>window.scrollBy({top:map.getBoundingClientRect().top-before.top,behavior:'instant'}));
+  });
+  root.querySelector<HTMLElement>('.shared-filters')!.hidden=false;
+  document.addEventListener('portfolio:ready',update);update();
+ }
+</script>

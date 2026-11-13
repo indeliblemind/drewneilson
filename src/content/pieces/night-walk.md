@@ -5,6 +5,7 @@ label: "Night Walk"
 status: "Tested prototype"
 summary: "A fictional evening walk where participants choose which small signals to follow."
 connections: [{"to": "harbor-studio", "relation": "part-of"}, {"to": "thresholds", "relation": "led-to", "note": "Testing revealed that people needed a clear invitation before they enjoyed uncertainty."}]
+topics: ["Participation", "Storytelling"]
 draft: false
 ---
 

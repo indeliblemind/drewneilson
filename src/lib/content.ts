@@ -1,12 +1,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 export const kinds = [{id:'job', label:'Jobs', singular:'Job'}, {id:'project', label:'Projects', singular:'Project'}, {id:'idea', label:'Ideas', singular:'Idea'}] as const;
-export const relations = {
- 'part-of': {forward:'Part of', reverse:'Includes', directed:true},
- 'led-to': {forward:'Led to', reverse:'Emerged from', directed:true},
- 'informed': {forward:'Informed', reverse:'Informed by', directed:true},
- 'related': {forward:'Related to', reverse:'Related to', directed:false},
-} as const;
-export type Edge = {source:string;target:string;type:keyof typeof relations;label:string;directed:boolean};
+import {relations,type Edge} from './relations';
+export {relations,type Edge} from './relations';
 export const nodeLabel = (piece:CollectionEntry<'pieces'>) => piece.data.label ?? piece.data.title;
 export const kindLabel = (kind:string) => kinds.find(k => k.id === kind)!.singular;
 export function edgeLabel(edge:Edge, from:string) { return from === edge.source ? relations[edge.type].forward : relations[edge.type].reverse; }

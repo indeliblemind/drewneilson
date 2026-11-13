@@ -1,0 +1,14 @@
+---
+import type {CollectionEntry} from 'astro:content';
+import {kindLabel} from '../lib/content';
+interface Props {piece:CollectionEntry<'pieces'>}
+const {piece}=Astro.props;
+---
+<article class:list={['resume-entry',`resume-${piece.data.kind}`]} data-resume-id={piece.id}>
+ <div class="resume-entry-top"><span class:list={['resume-kind',`kind-${piece.data.kind}`]}>{kindLabel(piece.data.kind)}</span>{piece.data.status&&<span class="resume-stage">{piece.data.status}</span>}<span class="resume-context-note" hidden>Work context</span></div>
+ <h3><a href={`/pieces/${piece.id}/`}>{piece.data.title}</a></h3>
+ {piece.data.role&&<p class="resume-role">{piece.data.role}</p>}{piece.data.period&&<p class="resume-period">{piece.data.period}</p>}
+ <p class="resume-summary">{piece.data.summary}</p>{piece.data.attribution&&<p class="resume-credit">{piece.data.attribution}</p>}
+ {piece.data.topics?.length>0&&<p class="resume-topics">{piece.data.topics.map(topic=><span>{topic}</span>)}</p>}
+<button type="button" class="resume-focus-button" data-focus-id={piece.id} aria-pressed="false">Focus connections ↗</button>
+</article>

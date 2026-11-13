@@ -5,6 +5,7 @@ label: "Wayfinding pilot"
 status: "Completed"
 summary: "A fictional library entrance pilot that replaced a wall of instructions with a clearer first decision."
 connections: [{"to": "harbor-studio", "relation": "part-of"}, {"to": "clarity", "relation": "led-to", "note": "The pilot suggested that removing a decision could be more useful than adding an explanation."}]
+topics: ["Experience design", "Communication"]
 draft: false
 ---
 
