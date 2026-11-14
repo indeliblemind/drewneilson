@@ -19,8 +19,8 @@ const payload={nodes,links:edges};
 ---
 <Layout title="Connected work prototype">
  <ConnectedHeader/>
- <section class="hero"><h1>Drew<br/>Neilson</h1><p>A connected view of work, ideas, and projects—where the chronology stays fixed, but the relationships change with your perspective.</p></section>
- <p class="demo-banner"><strong>INTERACTION DEMONSTRATION</strong> Existing fictional examples and your test pieces. Roles, dates, and outcomes here are not approved career content.</p>
+ <section class="hero"><h1>Drew<br/>Neilson</h1><p>Over twenty years of surprising connections in an unconventional career.</p></section>
+ <p class="demo-banner"><strong>AN INTERACTIVE CAREER</strong> Explore twenty years of work by chronology, connection, or specialty.</p>
  <section class="section" id="chronology" aria-labelledby="chronology-title"><div class="section-head"><h2 class="section-title" id="chronology-title">01 / Career chronology</h2><div class="note">Proportional durations · Overlaps preserved · Example dates retain their original precision.</div></div>
   <div class="timeline-scroll" tabindex="0" role="region" aria-label="Scrollable career chronology"><div class="timeline" id="timeline" style={`height:${55+laneCount*76}px;min-width:${Math.max(700,ticks.length*78)}px`}><div class="timeline-guides" aria-hidden="true">{ticks.map(year=><span style={`left:${pct(year*12)}%`}/>)}</div><div class="axis">{ticks.map(year=><span class="tick" style={`left:${pct(year*12)}%`}>{year}</span>)}</div>
    {dated.map(job=><button type="button" class="role" data-job-id={job.id} aria-pressed="false" style={`top:${43+job.lane*76}px;left:${pct(job.start)}%;width:${pct(job.end)-pct(job.start)}%`} title={`${job.name} · ${job.chronology!.label}`}><strong>{job.name}</strong><small>{job.role}</small></button>)}
