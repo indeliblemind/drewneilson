@@ -1,10 +1,62 @@
 ---
+# Copy into src/content/pieces and rename; filename is the stable record ID.
+# Required: record name, type, and a short description.
 title: "Organization or work context"
 kind: job
-role: "Your role"
 summary: "The context and scope of your work."
+# Optional: defaults to true (hidden). Set false when ready to include locally.
 draft: true
+
+# Optional: short map label; falls back to title.
+# label: "Short name"
+# Optional secondary description and editorial headline; stored for future use.
+# subtitle: "A secondary description"
+# headline: "An editorial headline"
+# Optional real-world status, not a publishing control.
+# status: "In progress"
+# Optional chronology: quote dates, use YYYY or YYYY-MM; omit unknown dates.
+# endDate may be omitted for ongoing work. period is a readable fallback.
+# startDate: "2022-04"
+# endDate: "2023-06"
+# period: "2022–2023"
+# Optional descriptive topics; these do not activate competency buttons.
+# topics: ["Public spaces", "Communication"]
+# Optional filter IDs from src/data/competencies.ts; multiple selections match ANY.
+# competencies: [experience-design, communication]
+# Optional collaborator credits or contribution notes.
+# attribution: "Created with a fictional team"
+
+# Optional typed connections FROM this record TO existing filename IDs.
+# Default is []; record each connection once. No self-links or duplicates.
 connections: []
+# Replace the line above with (do not keep two connections fields):
+# connections:
+#   - to: existing-record-id
+#     relation: informed
+#     note: "Why this connection matters."
+# part-of: this is part of target; led-to: this led to target;
+# informed: this informed target; related: neutral association.
+# note is optional; reverse wording is automatic. Draft links remain hidden.
+
+# Optional Job details. employer falls back to title in the résumé.
+# employer: "Fictional Harbor Studio"
+# role: "Experience designer"
+# location: "Fictional Northport"
+# workArrangement: "hybrid" # Free text: remote, hybrid, on-site, etc.
+# employmentType: "contractor" # Free text: employee, self-employed, etc.
+
+# Optional résumé evidence on Jobs/Projects only; never creates map nodes.
+# Defaults to []; text is canonical; id must be unique within this file.
+# accomplishments:
+#   - id: clearer-handoff
+#     text: "A factual accomplishment, using fictional evidence while testing."
+#     competencies: [operations, process-improvement] # Optional; default [].
+#     default: true # Optional; false by default, true shows in curated résumé.
+#     priority: 80 # Optional; default 0. Higher breaks relevance ties first.
+#     supporting: existing-record-id # Optional; defaults to this record's page.
 ---
+
+<!-- Write freely in Markdown. These are not mandatory headings.
+Quotations, images, experiments, and narrative sections belong in this body. -->
 
 Describe the setting, your responsibilities, and the work.

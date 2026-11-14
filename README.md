@@ -49,3 +49,37 @@ The two existing `period` strings marked `(example)` are recognized as year-only
 ## Verify and deploy
 
 Run `npm test`, `npm run check`, and `npm run build`. Output is `dist/`. Cloudflare and the private GitHub repository have not been changed by this local work. Nothing is published or pushed automatically.
+
+
+## Dynamic competency résumé
+
+A conventional résumé now sits directly below the map. It reuses Jobs, their dates/roles, and accomplishments nested in existing Job/Project Markdown files. The graph has the same subjects as before; competencies and accomplishments are not graph nodes. Original body text and relationships remain unchanged. New example evidence is explicitly fictional and is limited to the existing fictional collection; real career content has not been imported.
+
+`src/components/DynamicResume.astro` renders the complete curated chronological résumé at build time. It works without JavaScript. Contacts and Education have explicit pending placeholders because no approved résumé details have been supplied. Put the single fixed introduction, approved contact entries, and education into `src/data/site.ts` under `resume`. No alternate introductions are generated.
+
+`src/data/competencies.ts` defines the provisional vocabulary: Operations, Process Improvement, Experience Design, Communication, Strategic Planning. Competency IDs are used in Markdown. Marketing and Business Development are intentionally absent because the current fictional fixtures do not demonstrate them. Add categories when there is supporting content, updating the ID tuple alongside the labels.
+
+```yaml
+competencies: [operations, process-improvement]
+accomplishments:
+  - id: documented-handoff
+    text: "An approved, factual résumé statement."
+    competencies: [operations, process-improvement]
+    default: true
+    priority: 80
+    supporting: an-existing-project
+```
+
+Accomplishment IDs are local to their parent file; the stable global ID is parent-id:accomplishment-id. Text is canonical. Parent references are implicit, not duplicated. `default` defaults to false, `priority` defaults to zero (higher ranks earlier), and `supporting` is optional. Duplicate local IDs, unknown supporting references, and accomplishments attached to Ideas fail validation. A supporting draft is not linked from the visible résumé; its parent page is used instead.
+
+`src/lib/resume-data.ts` resolves Job context for Project evidence via existing part-of relationships. Project evidence is displayed once, under its first context in reverse-chronological Job order. In relevance mode, all associated employers, roles, and dates are retained. Independent Project evidence retains its project context. Dated Jobs are reverse-chronological; undated Jobs follow deterministically by ID/title. Jobs without accomplishments retain their existing summary rather than receiving invented bullets.
+
+Competency buttons are multi-select toggles with OR matching. No selected competency means the curated defaults, not every available accomplishment. With filters active, matching defaults remain, matching supplemental items appear, and unrelated defaults remain but are de-emphasized. Relevance score is the number of distinct selected tags matched. Ties use editorial priority, chronological context, then stable ID. The chronological view always retains all Jobs and only reorders evidence inside each Job. The relevance view ranks the same evidence across Jobs, with context preserved. Switching modes retains the active tags. Clearing competencies retains the selected mode; the map's Reset restores the full default state including chronological résumé mode.
+
+The map's existing category filter, Only related control, animation, and timeline selection are unchanged. Competency matching adds a separate opacity treatment to unrelated nodes/edges. It uses a node's own competencies plus those of its attached accomplishments. It does not infer tags by traversing the graph. Clicking a map node never activates a competency or rewrites the résumé. The selected map node remains readable even when it is not a competency match, so navigation remains independent. The timeline is not filtered by competency.
+
+Core logic: `src/lib/resume-model.ts`; UI state: `src/scripts/dynamic-resume.ts`. `competencies:change` shares competency state with the existing network; no map-node selection state is shared with the résumé. All professional wording is pre-rendered from content. Client code only changes visibility, emphasis, ordering, and UI status messages.
+
+## Richer optional frontmatter
+
+See [CONTENT-REFERENCE.md](CONTENT-REFERENCE.md) for all fields, defaults, and nested evidence/connection rules. Start with the commented Job, Project, or Idea template in `templates/`. Only `title`, `kind`, and `summary` are required; `draft` still defaults to true. New descriptors are stored without creating visible sections.

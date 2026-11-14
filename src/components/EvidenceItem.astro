@@ -1,0 +1,11 @@
+---
+import type {Evidence} from '../lib/resume-model';
+interface Props {item:Evidence;context?:boolean}
+const {item,context=false}=Astro.props;
+---
+<li data-evidence-id={item.id} hidden={!item.default}>
+ {context&&<div class="evidence-context"><strong>{item.contexts.length?item.contexts.map(c=>`${c.role} · ${c.employer}`).join(' / '):`Independent project · ${item.parentTitle}`}</strong><span>{item.contexts.map(c=>c.period).join(' / ')}</span></div>}
+ <span class="evidence-text">{item.text}</span>
+ <a class="evidence-source" href={item.supportingUrl}>Supporting work ↗</a>
+ <span class="additional-evidence" hidden>Additional evidence</span>
+</li>

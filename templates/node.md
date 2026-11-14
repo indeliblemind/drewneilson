@@ -27,11 +27,31 @@ draft: true
 # Uncomment by removing the leading # and space.
 # label: "Short name"
 
+# OPTIONAL: secondary description and editorial headline (stored, not automatically rendered).
+# subtitle: "A secondary description"
+# headline: "An editorial headline"
+# OPTIONAL Job details; employer falls back to title in the résumé.
+# employer: "Fictional organization"
+# location: "Fictional Northport"
+# workArrangement: "hybrid"
+# employmentType: "contractor"
+# OPTIONAL Project descriptors (plain text, stored without automatic page sections).
+# recordClass: "experiment"
+# problem: "The problem or opportunity."
+# hypothesis: "The intended outcome or assumption."
+# approach: "What was attempted."
+# outcome: "What actually happened."
+# lessons: "Optional conclusions."
+# OPTIONAL Idea descriptors (plain text).
+# proposition: "The central statement or question."
+# origin: "Origin or context."
+# limitations: "Qualifications or uncertainty."
+
 # OPTIONAL: development stage, such as Concept, In progress, Tested, or Completed.
 # This is descriptive text, not another node type. Omit it if it isn't useful.
 # status: "In progress"
 
-# OPTIONAL: topics used by the shared résumé/map filters. Omit if not needed.
+# OPTIONAL: descriptive topics. Competency IDs below drive the current filters.
 # topics: ["Experience design", "Participation"]
 
 # OPTIONAL: a date range for a Job; omit rather than invent dates.
@@ -40,6 +60,23 @@ draft: true
 # startDate: "2021-03"
 # endDate: "2024-08"
 # YYYY also works. Omit endDate for an ongoing role.
+
+# OPTIONAL: strengths used by the shared map/résumé competency buttons.
+# Use IDs from src/data/competencies.ts. Multiple selections use OR matching.
+# competencies: [operations, process-improvement]
+
+# OPTIONAL: canonical résumé evidence, attached to this Job or Project.
+# No new map nodes are created. IDs must be unique within this file.
+# default: true = curated default résumé; false = reveal only when matching a filter.
+# Higher priority appears earlier when relevance scores are equal.
+# supporting is an optional existing content ID; otherwise this page is linked.
+# accomplishments:
+#   - id: improve-handoff
+#     text: "Write a verified accomplishment here, not an invented result."
+#     competencies: [operations, process-improvement]
+#     default: true
+#     priority: 80
+#     supporting: an-existing-project
 
 # OPTIONAL: your role, usually for a Job.
 # role: "Founder and operator"

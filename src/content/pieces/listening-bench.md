@@ -7,6 +7,8 @@ attribution: "Fictional personal project"
 summary: "A proposed bench that plays a neighborhood recording only after someone sits quietly."
 connections: [{"to": "participation", "relation": "related", "note": "Both explore how a small action changes someone’s role in an experience."}]
 topics: ["Participation", "Storytelling"]
+competencies: ["experience-design", "strategic-planning"]
+accomplishments: [{"id": "define-concept", "text": "Outlined an unbuilt listening-bench concept in which a participant’s pause initiates a neighborhood recording.", "competencies": ["experience-design", "strategic-planning"], "default": true, "priority": 60}]
 draft: false
 ---
 

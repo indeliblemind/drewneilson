@@ -14,6 +14,7 @@ if(payload&&svg){
  function shape<K extends keyof SVGElementTagNameMap>(tag:K,attrs:Record<string,string|number>={}){const e=document.createElementNS(ns,tag);for(const [k,v]of Object.entries(attrs))e.setAttribute(k,String(v));return e;}
  function html<K extends keyof HTMLElementTagNameMap>(tag:K,text='',className=''){const e=document.createElement(tag);e.textContent=text;if(className)e.className=className;return e;}
  let selected:string|null=null,category='all',onlyRelated=false,active=false,frameCount=0,handle=0;
+ let competencyActive=false;let competencyMatches=new Set(nodes.map(n=>n.id));
  const motion=matchMedia('(prefers-reduced-motion: reduce)');
  const near=()=>selected?adjacent(selected):new Set<string>();
  const visible=(n:Moving)=>n.id===selected||(category==='all'||category===n.type)&&(!onlyRelated||!selected||near().has(n.id));
@@ -22,7 +23,7 @@ if(payload&&svg){
  const shapes=nodes.map(n=>{
   const g=shape('g',{class:'node',tabindex:0,role:'button','aria-label':`${n.type}: ${n.name}`,'aria-pressed':'false','data-node-id':n.id});
   const r=n.type==='job'?20:n.type==='project'?12:9;
-  g.append(shape('circle',{class:'hit-area',r:27,fill:'transparent'}),shape('circle',{class:'halo',r:r+7}),shape('circle',{class:'dot',r,fill:colors[n.type]}));
+  g.append(shape('circle',{class:'hit-area',r:27,fill:'transparent'}),shape('circle',{class:'halo',r:r+7,style:`fill:${colors[n.type]}`}),shape('circle',{class:'dot',r,fill:colors[n.type]}));
   const text=shape('text',{'text-anchor':'middle',y:r+17});
   const words=n.name.split(/\s+/),lines:string[]=[''];
   for(const word of words){const i=lines.length-1;if((lines[i]+' '+word).trim().length>22&&lines[i])lines.push(word);else lines[i]=(lines[i]+' '+word).trim();}
@@ -48,8 +49,16 @@ if(payload&&svg){
   for(const {link,e}of edgeShapes){e.classList.toggle('active',!!selected&&(link.source===selected||link.target===selected));e.classList.toggle('dim',!!selected&&link.source!==selected&&link.target!==selected);e.style.display=visible(byId.get(link.source)!)&&visible(byId.get(link.target)!)?'':'none';}
   document.querySelectorAll<HTMLButtonElement>('[data-category]').forEach(b=>{b.classList.toggle('active',b.dataset.category===category);b.setAttribute('aria-pressed',String(b.dataset.category===category));});
   document.querySelectorAll<HTMLButtonElement>('[data-browse-id]').forEach(b=>{b.hidden=!visible(byId.get(b.dataset.browseId!)!);b.setAttribute('aria-pressed',String(b.dataset.browseId===selected));});
-  renderDetail();document.querySelector('#network-status')!.textContent=selected?`${byId.get(selected)!.name} selected. ${neighbors.size} direct connections. Related chronology roles highlighted.`:'Overview restored.';
+  updateCompetencyPresentation();renderDetail();document.querySelector('#network-status')!.textContent=selected?`${byId.get(selected)!.name} selected. ${neighbors.size} direct connections. Related chronology roles highlighted.`:'Overview restored.';
  }
+ function updateCompetencyPresentation(){
+  for(const {n,g}of shapes)g.classList.toggle('competency-dim',competencyActive&&!competencyMatches.has(n.id)&&n.id!==selected);
+  for(const {link,e}of edgeShapes)e.classList.toggle('competency-dim',competencyActive&&(!competencyMatches.has(link.source)||!competencyMatches.has(link.target))&&link.source!==selected&&link.target!==selected);
+ }
+ document.addEventListener('competencies:change',event=>{
+  const detail=(event as CustomEvent<{selected:string[];matchingIds:string[]}>).detail;
+  competencyActive=detail.selected.length>0;competencyMatches=new Set(detail.matchingIds);updateCompetencyPresentation();
+ });
  function renderDetail(){
   const panel=document.querySelector('#detail')!;panel.replaceChildren();
   if(!selected){panel.append(html('div','Overview','kicker'),html('h2','Follow a connection.'),html('p','Choose a role in the chronology or any node in the map. The network reorganizes around the selection while the timeline stays put.'),html('p','Turn on Only related to hide unrelated subjects, or continue exploring the faded nodes.'),html('p','This is the existing fictional and test collection, not the career content from the V2 reference.','meta'));return;}
@@ -107,9 +116,10 @@ if(payload&&svg){
  document.querySelectorAll<HTMLButtonElement>('[data-browse-id]').forEach(b=>b.addEventListener('click',()=>{choose(b.dataset.browseId!,false);document.querySelector('#detail')!.scrollIntoView({block:'nearest',behavior:motion.matches?'instant':'smooth'});}));
  document.querySelectorAll<HTMLButtonElement>('[data-category]').forEach(b=>b.addEventListener('click',()=>{category=b.dataset.category!;reflow();}));
  const filter=document.querySelector<HTMLInputElement>('#only-related')!;filter.addEventListener('change',()=>{onlyRelated=filter.checked;reflow();});
- document.querySelector('[data-reset]')!.addEventListener('click',()=>{selected=null;category='all';onlyRelated=false;filter.checked=false;reflow();});
+ document.querySelector('[data-reset]')!.addEventListener('click',()=>{selected=null;category='all';onlyRelated=false;filter.checked=false;reflow();document.dispatchEvent(new Event('portfolio:reset'));});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'){selected=null;reflow();}});
  svg.addEventListener('click',e=>{if(!(e.target as Element).closest('.node')){selected=null;reflow();}});
  motion.addEventListener('change',reflow);
  reflow();
+ document.dispatchEvent(new Event('network:ready'));
 }

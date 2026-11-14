@@ -7,7 +7,17 @@ export const kindLabel = (kind:string) => kinds.find(k => k.id === kind)!.singul
 export function edgeLabel(edge:Edge, from:string) { return from === edge.source ? relations[edge.type].forward : relations[edge.type].reverse; }
 export async function getPortfolio() {
  const all = await getCollection('pieces');
- const ids = new Set(all.map(p => p.id)); const seen = new Set<string>(); const edges:Edge[] = [];
+ const ids = new Set(all.map(p => p.id));
+ for(const piece of all){
+  const seenEvidence=new Set<string>();
+  if(piece.data.kind==='idea'&&piece.data.accomplishments?.length)throw new Error(`${piece.id}: accomplishments belong to Jobs or Projects, not Ideas.`);
+  for(const item of piece.data.accomplishments??[]){
+   if(seenEvidence.has(item.id))throw new Error(`${piece.id}: duplicate accomplishment ID ${item.id}`);
+   seenEvidence.add(item.id);
+   if(item.supporting&&!ids.has(item.supporting))throw new Error(`${piece.id}: unknown supporting content ${item.supporting}`);
+  }
+ }
+ const seen = new Set<string>(); const edges:Edge[] = [];
  for (const piece of all) for (const link of piece.data.connections ?? []) {
   if (!ids.has(link.to)) throw new Error(`${piece.id}: connection target "${link.to}" does not exist.`);
   if (link.to === piece.id) throw new Error(`${piece.id}: a connection cannot point to itself.`);

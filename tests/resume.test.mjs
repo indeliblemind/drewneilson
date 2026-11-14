@@ -1,0 +1,16 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {presentEvidence,matchingNodeIds,relevanceScore} from '../src/lib/resume-model.ts';
+const item=(id,tags,def,priority,rank=0)=>({id,parentId:'parent',parentTitle:'Parent',parentKind:'job',text:'Canonical '+id,competencies:tags,default:def,priority,supportingUrl:'/pieces/parent/',contexts:[],groupId:'job'+rank,groupRank:rank});
+const data=[item('default-ops',['operations'],true,90),item('default-design',['experience-design'],true,80),item('extra-process',['process-improvement'],false,95),item('extra-both',['operations','process-improvement'],false,50),item('extra-unrelated',['communication'],false,100),item('older-ops',['operations'],true,100,1)];
+test('default résumé is curated, not all available evidence',()=>assert.deepEqual(presentEvidence(data,[],'chronological').map(e=>e.id),['default-ops','default-design','older-ops']));
+test('OR matching reveals additional evidence and retains unrelated defaults',()=>{const rows=presentEvidence(data,['operations','process-improvement'],'chronological');assert(rows.some(e=>e.id==='extra-process'));assert(rows.some(e=>e.id==='extra-both'));assert.equal(rows.find(e=>e.id==='default-design').dim,true);assert(!rows.some(e=>e.id==='extra-unrelated'));});
+test('matching multiple selected competencies gets higher relevance',()=>assert.equal(presentEvidence(data,['operations','process-improvement'],'relevance')[0].id,'extra-both'));
+test('chronological mode retains group order even when older evidence ranks higher',()=>{const ids=presentEvidence(data,['operations'],'chronological').map(e=>e.id);assert(ids.indexOf('default-ops')<ids.indexOf('older-ops'));});
+test('relevance mode can move older evidence first while retaining context',()=>assert.equal(presentEvidence(data,['operations'],'relevance')[0].id,'older-ops'));
+test('mode changes neither generate nor rewrite accomplishment text',()=>{for(const mode of ['chronological','relevance'])for(const row of presentEvidence(data,['operations'],mode))assert.equal(row.text,data.find(e=>e.id===row.id).text);});
+test('reset removes supplemental evidence and restores the default set',()=>assert.equal(presentEvidence(data,[],'relevance').length,3));
+test('no-match competencies preserve and de-emphasize all defaults',()=>{const rows=presentEvidence(data,['unknown'],'chronological');assert.equal(rows.length,3);assert(rows.every(e=>e.dim));});
+test('relevance ties have deterministic stable-ID order',()=>{const a=item('b',['operations'],true,1),b=item('a',['operations'],true,1);assert.deepEqual(presentEvidence([a,b],['operations'],'relevance').map(e=>e.id),['a','b']);});
+test('node matching includes its attached accomplishment tags, not graph neighbors',()=>assert.deepEqual([...matchingNodeIds([{id:'a',competencies:[],accomplishments:[{competencies:['operations']}]},{id:'b',competencies:['communication']}],['operations'])],['a']));
+test('competency duplicates never inflate scores',()=>assert.equal(relevanceScore(['operations','operations'],['operations','operations']),1));

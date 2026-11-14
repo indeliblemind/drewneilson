@@ -1,11 +1,21 @@
 ---
 title: "The sign nobody needed to read"
+subtitle: "A fictional library entrance pilot"
+headline: "Making the first choice easier"
+recordClass: "experiment"
+problem: "Competing entrance instructions made it difficult to choose a first action in the fictional library."
+hypothesis: "Removing competing signals could make the next step easier to understand."
+approach: "Prototype a simpler entrance sequence and observe informal trials."
+outcome: "The fictional pilot suggested a clearer starting decision; no measured impact is claimed."
+lessons: "Keep essential accessibility instructions while reducing competing messages."
 kind: "project"
 label: "Wayfinding pilot"
 status: "Completed"
 summary: "A fictional library entrance pilot that replaced a wall of instructions with a clearer first decision."
 connections: [{"to": "harbor-studio", "relation": "part-of"}, {"to": "clarity", "relation": "led-to", "note": "The pilot suggested that removing a decision could be more useful than adding an explanation."}]
 topics: ["Experience design", "Communication"]
+competencies: ["experience-design", "process-improvement"]
+accomplishments: [{"id": "remove-friction", "text": "Replaced competing entrance instructions with a clearer first decision in a fictional library pilot.", "competencies": ["experience-design", "process-improvement"], "default": true, "priority": 85}, {"id": "compare-options", "text": "Compared alternative layouts using temporary signs, movable furniture, and observation.", "competencies": ["strategic-planning", "experience-design"], "default": false, "priority": 75}]
 draft: false
 ---
 

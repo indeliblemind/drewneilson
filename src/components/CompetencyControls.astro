@@ -1,0 +1,9 @@
+---
+import {competencies} from '../data/competencies';
+---
+<div class="competency-bar" aria-label="Filter portfolio by competency" hidden>
+ <span class="competency-label">Explore strengths</span>
+ <div role="group" aria-label="Competencies">{competencies.map(c=><button type="button" class="competency-button" data-competency={c.id} aria-pressed="false">{c.label}</button>)}</div>
+ <button type="button" class="competency-reset" data-reset-competencies hidden>Clear competencies</button>
+ <span class="sr" data-competency-status role="status" aria-live="polite"/>
+</div>

@@ -6,6 +6,8 @@ status: "Completed"
 summary: "A fictional museum guide offering three useful starting points instead of a single correct itinerary."
 connections: [{"to": "city-museum", "relation": "part-of"}, {"to": "participation", "relation": "led-to", "note": "Visitors used the starting points to build journeys the team had not planned."}]
 topics: ["Communication", "Participation"]
+competencies: ["communication", "experience-design"]
+accomplishments: [{"id": "guide-format", "text": "Developed a fictional guide offering three starting points instead of one prescribed itinerary.", "competencies": ["experience-design", "communication"], "default": true, "priority": 85}, {"id": "simplify-production", "text": "Prepared a repeatable guide-revision checklist for the fictional museum team.", "competencies": ["operations", "process-improvement"], "default": false, "priority": 70}]
 draft: false
 ---
 

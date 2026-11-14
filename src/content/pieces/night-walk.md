@@ -6,6 +6,8 @@ status: "Tested prototype"
 summary: "A fictional evening walk where participants choose which small signals to follow."
 connections: [{"to": "harbor-studio", "relation": "part-of"}, {"to": "thresholds", "relation": "led-to", "note": "Testing revealed that people needed a clear invitation before they enjoyed uncertainty."}]
 topics: ["Participation", "Storytelling"]
+competencies: ["experience-design", "communication"]
+accomplishments: [{"id": "prototype-route", "text": "Prototyped a fictional evening route using light, sound, and printed clues.", "competencies": ["experience-design", "communication"], "default": true, "priority": 70}, {"id": "adapt-briefing", "text": "Revised the opening invitation after informal prototype trials exposed uncertainty at the start.", "competencies": ["process-improvement", "communication"], "default": false, "priority": 75}]
 draft: false
 ---
 
