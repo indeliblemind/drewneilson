@@ -48,10 +48,16 @@ if(payload&&svg){
   for(const {n,g}of shapes){const show=visible(n);g.classList.toggle('selected',n.id===selected);g.classList.toggle('related',!!selected&&neighbors.has(n.id));g.classList.toggle('dim',!!selected&&n.id!==selected&&!neighbors.has(n.id));g.style.display=show?'':'none';g.setAttribute('tabindex',show?'0':'-1');g.setAttribute('aria-pressed',String(n.id===selected));}
   for(const {link,e}of edgeShapes){e.classList.toggle('active',!!selected&&(link.source===selected||link.target===selected));e.classList.toggle('dim',!!selected&&link.source!==selected&&link.target!==selected);e.style.display=visible(byId.get(link.source)!)&&visible(byId.get(link.target)!)?'':'none';}
   document.querySelectorAll<HTMLButtonElement>('[data-category]').forEach(b=>{b.classList.toggle('active',b.dataset.category===category);b.setAttribute('aria-pressed',String(b.dataset.category===category));});
-  document.querySelectorAll<HTMLButtonElement>('[data-browse-id]').forEach(b=>{b.hidden=!visible(byId.get(b.dataset.browseId!)!);b.setAttribute('aria-pressed',String(b.dataset.browseId===selected));});
+  document.dispatchEvent(new CustomEvent('network:selection',{detail:{id:selected}}));
   updateCompetencyPresentation();renderDetail();document.querySelector('#network-status')!.textContent=selected?`${byId.get(selected)!.name} selected. ${neighbors.size} direct connections. Related chronology roles highlighted.`:'Overview restored.';
  }
  function updateCompetencyPresentation(){
+  document.querySelectorAll<HTMLButtonElement>('[data-browse-id]').forEach(button=>{
+   const id=button.dataset.browseId!;
+   button.hidden=competencyActive&&!competencyMatches.has(id);
+   button.setAttribute('aria-pressed',String(id===selected));
+  });
+  document.querySelectorAll<HTMLElement>('.subject-group').forEach(group=>{group.hidden=[...group.querySelectorAll<HTMLButtonElement>('[data-browse-id]')].every(button=>button.hidden);});
   for(const {n,g}of shapes)g.classList.toggle('competency-dim',competencyActive&&!competencyMatches.has(n.id)&&n.id!==selected);
   for(const {link,e}of edgeShapes)e.classList.toggle('competency-dim',competencyActive&&(!competencyMatches.has(link.source)||!competencyMatches.has(link.target))&&link.source!==selected&&link.target!==selected);
  }
@@ -113,6 +119,7 @@ if(payload&&svg){
  }
  function choose(id:string|null,restoreFocus=true){selected=selected===id?null:id;reflow();if(restoreFocus&&id===null)shapes[0]?.g.focus();}
  document.querySelectorAll<HTMLButtonElement>('[data-job-id]').forEach(b=>b.addEventListener('click',()=>choose(b.dataset.jobId!)));
+ document.addEventListener('chronology:select',event=>{const id=(event as CustomEvent<{id:string}>).detail.id;if(byId.get(id)?.type==='job'){selected=id;reflow();}});
  document.querySelectorAll<HTMLButtonElement>('[data-browse-id]').forEach(b=>b.addEventListener('click',()=>{choose(b.dataset.browseId!,false);document.querySelector('#detail')!.scrollIntoView({block:'nearest',behavior:motion.matches?'instant':'smooth'});}));
  document.querySelectorAll<HTMLButtonElement>('[data-category]').forEach(b=>b.addEventListener('click',()=>{category=b.dataset.category!;reflow();}));
  const filter=document.querySelector<HTMLInputElement>('#only-related')!;filter.addEventListener('change',()=>{onlyRelated=filter.checked;reflow();});

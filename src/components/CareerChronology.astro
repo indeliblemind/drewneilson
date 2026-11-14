@@ -1,0 +1,33 @@
+---
+import type {CollectionEntry} from 'astro:content';
+import {chronology,assignLanes} from '../lib/chronology';
+import {timelineGeometry} from '../lib/timeline-layout';
+interface Props {pieces:CollectionEntry<'pieces'>[]}
+const {pieces}=Astro.props;
+const jobs=pieces.filter(piece=>piece.data.kind==='job').map(piece=>({id:piece.id,name:piece.data.employer?.trim()||piece.data.title,role:piece.data.role||'Role not provided',date:chronology(piece.data.startDate,piece.data.endDate,piece.data.period),period:piece.data.period||'Dates not provided',url:`/pieces/${piece.id}/`}));
+const dated=assignLanes(jobs.filter(job=>job.date).map(job=>({...job,start:job.date!.start,end:job.date!.end})));
+const undated=jobs.filter(job=>!job.date);
+const start=dated.length?Math.floor(Math.min(...dated.map(job=>job.start))/12)*12:2026*12;
+const end=dated.length?Math.ceil(Math.max(...dated.map(job=>job.end))/12)*12:2027*12;
+const pct=(month:number)=>100*(month-start)/(end-start);
+const rows=dated.length?Math.max(...dated.map(job=>job.lane))+1:0;
+const geometry=timelineGeometry(rows);
+const ticks=Array.from({length:(end-start)/12+1},(_,i)=>start/12+i);
+---
+<section class="section" id="chronology" aria-labelledby="chronology-title">
+ <div class="section-head"><h2 class="section-title" id="chronology-title">01 / Career chronology</h2><div class="note">Proportional durations · Overlaps preserved · Example dates retain their original precision.</div></div>
+ <div class="timeline-scroll" tabindex="0" role="region" aria-label="Scrollable career chronology">
+  <div class="timeline" id="timeline" style={`height:${geometry.height}px;min-width:${Math.max(700,ticks.length*78)}px`}>
+   <div class="timeline-guides" aria-hidden="true">{ticks.map(year=><span style={`left:${pct(year*12)}%`}/>)}</div>
+   <div class="axis">{ticks.map(year=><span class="tick" style={`left:${pct(year*12)}%`}>{year}</span>)}</div>
+   {dated.map(job=><button type="button" class="role" data-job-id={job.id} data-lane={job.lane} aria-pressed="false" aria-label={`${job.name} · ${job.role} · ${job.date!.label}`} aria-describedby={`chronology-info-${job.id}`} style={`top:${geometry.top+job.lane*geometry.rowStep}px;left:${pct(job.start)}%;width:${pct(job.end)-pct(job.start)}%`} title={`${job.name} · ${job.role} · ${job.date!.label}`}><span class="timeline-label"><strong>{job.name}</strong><small>{job.role}</small></span></button>)}
+  </div>
+ </div>
+ {undated.length>0&&<div class="undated-jobs"><span class="note">Dates not provided</span>{undated.map(job=><button type="button" class="chip" data-job-id={job.id} aria-pressed="false" aria-label={`${job.name} · ${job.role} · ${job.period}`} aria-describedby={`chronology-info-${job.id}`}>{job.name}</button>)}</div>}
+ <div class="chronology-info" aria-label="Job details">
+  <p class="chronology-info-prompt">Hover, focus, or select a role for employer, title, dates, and supporting work.</p>
+  {jobs.map(job=><div class="chronology-info-item" id={`chronology-info-${job.id}`} data-chronology-info={job.id} aria-hidden="true"><div><strong>{job.name}</strong><span>{job.role}</span></div><div><span>{job.date?.label||job.period}</span><a href={job.url}>Read the full page ↗</a></div></div>)}
+ </div>
+ <noscript><p>Focus or hover a role for its full details. Its article is also available in Browse all subjects.</p></noscript>
+</section>
+<script>import '../scripts/chronology';</script>

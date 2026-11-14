@@ -4,36 +4,32 @@ import ConnectedHeader from '../components/ConnectedHeader.astro';
 import DynamicResume from '../components/DynamicResume.astro';
 import CompetencyControls from '../components/CompetencyControls.astro';
 import {getPortfolio} from '../lib/content';
-import {chronology,assignLanes} from '../lib/chronology';
+import {chronology} from '../lib/chronology';
+import CareerChronology from '../components/CareerChronology.astro';
 const {pieces,edges}=await getPortfolio();
 const nodes=pieces.map(piece=>({id:piece.id,name:piece.data.label??piece.data.title,title:piece.data.title,type:piece.data.kind,desc:piece.data.summary,role:piece.data.role??'',stage:piece.data.status??'',attribution:piece.data.attribution??'',url:`/pieces/${piece.id}/`,chronology:piece.data.kind==='job'?chronology(piece.data.startDate,piece.data.endDate,piece.data.period):null}));
-const jobs=nodes.filter(n=>n.type==='job');
-const dated=assignLanes(jobs.filter(n=>n.chronology).map(n=>({...n,start:n.chronology!.start,end:n.chronology!.end})));
-const undated=jobs.filter(n=>!n.chronology);
-const start=dated.length?Math.floor(Math.min(...dated.map(n=>n.start))/12)*12:2026*12;
-const end=dated.length?Math.ceil(Math.max(...dated.map(n=>n.end))/12)*12:2027*12;
-const pct=(month:number)=>100*(month-start)/(end-start);
-const laneCount=Math.max(1,...dated.map(n=>n.lane+1));
-const ticks=Array.from({length:(end-start)/12+1},(_,i)=>start/12+i);
+const browseGroups=(['job','project','idea'] as const).map(kind=>({
+ title:kind==='job'?'Jobs':kind==='project'?'Projects':'Ideas',
+ nodes:pieces.filter(piece=>piece.data.kind===kind).sort((a,b)=>{
+  // Compare starts only; year precision sorts as January. Missing dates go last.
+  const start=(value?:string)=>value?`${value.slice(0,4)}-${value.slice(5)||'01'}`:'';
+  return start(b.data.startDate).localeCompare(start(a.data.startDate))||a.data.title.localeCompare(b.data.title)||a.id.localeCompare(b.id);
+ }).map(piece=>nodes.find(node=>node.id===piece.id)!),
+}));
 const payload={nodes,links:edges};
 ---
 <Layout title="Connected work prototype">
  <ConnectedHeader/>
- <section class="hero"><h1>Drew<br/>Neilson</h1><p>Over twenty years of surprising connections in an unconventional career.</p></section>
+ <section class="hero"><h1><span style="color:var(--idea)">Drew</span><br/><span style="color:var(--job)">Neilson</span></h1><p>Over twenty years of surprising connections in an unconventional career.</p></section>
  <p class="demo-banner"><strong>AN INTERACTIVE CAREER</strong> Explore twenty years of work by chronology, connection, or specialty.</p>
- <section class="section" id="chronology" aria-labelledby="chronology-title"><div class="section-head"><h2 class="section-title" id="chronology-title">01 / Career chronology</h2><div class="note">Proportional durations · Overlaps preserved · Example dates retain their original precision.</div></div>
-  <div class="timeline-scroll" tabindex="0" role="region" aria-label="Scrollable career chronology"><div class="timeline" id="timeline" style={`height:${55+laneCount*76}px;min-width:${Math.max(700,ticks.length*78)}px`}><div class="timeline-guides" aria-hidden="true">{ticks.map(year=><span style={`left:${pct(year*12)}%`}/>)}</div><div class="axis">{ticks.map(year=><span class="tick" style={`left:${pct(year*12)}%`}>{year}</span>)}</div>
-   {dated.map(job=><button type="button" class="role" data-job-id={job.id} aria-pressed="false" style={`top:${43+job.lane*76}px;left:${pct(job.start)}%;width:${pct(job.end)-pct(job.start)}%`} title={`${job.name} · ${job.chronology!.label}`}><strong>{job.name}</strong><small>{job.role}</small></button>)}
-  </div></div>
-  {undated.length>0&&<div class="undated-jobs"><span class="note">Dates not provided</span>{undated.map(job=><button type="button" class="chip" data-job-id={job.id} aria-pressed="false">{job.name}</button>)}</div>}
- </section>
+ <CareerChronology pieces={pieces}/>
  <section class="section" id="connections" aria-labelledby="connections-title"><span id="map"/><div class="section-head"><h2 class="section-title" id="connections-title">02 / Connections</h2><div class="controls" role="group" aria-label="Map controls">{['all','job','project','idea'].map(type=><button type="button" class:list={['chip',type==='all'&&'active']} data-category={type} aria-pressed={type==='all'?'true':'false'}>{type==='all'?'All':type[0].toUpperCase()+type.slice(1)+'s'}</button>)}<label class="toggle"><input id="only-related" type="checkbox"/> Only related</label><button class="chip" type="button" data-reset>Reset</button></div></div>
   <div class="map-layout"><div><div class="map-stage"><svg id="network" viewBox="0 0 820 520" role="group" aria-label="Interactive network of Jobs, Projects, and Ideas"><g id="edges"/><g id="nodes"/></svg><div class="map-hint">Select a timeline bar or map node · The map settles into a new arrangement</div></div><div class="legend"><span><i class="swatch" style="background:var(--job)"/>Job</span><span><i class="swatch" style="background:var(--project)"/>Project</span><span><i class="swatch" style="background:var(--idea)"/>Idea</span><span>Outlined = selected · Faded = unrelated</span></div></div>
    <aside class="detail" id="detail" aria-label="Selected subject"><div class="kicker">Overview</div><h2>Follow a connection.</h2><p>Choose a role in the chronology or any node in the map. The network reorganizes while the timeline stays put.</p><p>All content is drawn from the existing example collection.</p></aside>
   </div><p class="sr" id="network-status" role="status" aria-live="polite"/>
   <noscript><p>JavaScript is needed for the animated map. All subjects are available as ordinary pages:</p><ul>{nodes.map(node=><li><a href={node.url}>{node.title}</a></li>)}</ul></noscript>
  </section>
- <CompetencyControls/><details class="subject-directory"><summary>Browse all subjects</summary><div>{nodes.map(node=><button type="button" class="related-button" data-browse-id={node.id}>{node.name}<small>{node.type}</small></button>)}</div></details>
+ <CompetencyControls/><details class="subject-directory"><summary>Browse all subjects</summary>{browseGroups.filter(group=>group.nodes.length).map(group=><section class="subject-group"><h3 class="kicker">{group.title}</h3><div>{group.nodes.map(node=><button type="button" class="related-button" data-browse-id={node.id}>{node.name}<small>{node.title}</small></button>)}</div></section>)}</details>
  <DynamicResume pieces={pieces} edges={edges}/><footer class="footer">V2 interaction baseline · Existing demonstration collection · No career content imported · Local preview</footer>
  <script type="application/json" id="network-data" set:html={JSON.stringify(payload).replace(/</g,'\\u003c')}/>
  <script>import '../scripts/connected-work';</script>
