@@ -5,6 +5,7 @@ import {resumeData} from '../lib/resume-data';
 import {presentEvidence} from '../lib/resume-model';
 import EvidenceItem from './EvidenceItem.astro';
 import {site} from '../data/site';
+import '../styles/resume-print.css';
 interface Props {pieces:CollectionEntry<'pieces'>[];edges:Edge[]}
 const {pieces,edges}=Astro.props;
 const {jobs,contexts,evidence}=resumeData(pieces,edges);
@@ -14,9 +15,9 @@ const independent=[...new Set(evidence.filter(e=>!e.contexts.length).map(e=>e.pa
 const activeNodes=pieces.map(p=>({id:p.id,competencies:p.data.competencies??[],accomplishments:(p.data.accomplishments??[]).map(a=>({competencies:a.competencies??[]}))}));
 ---
 <section class="section dynamic-resume" id="resume" aria-labelledby="resume-title">
- <div class="section-head"><h2 class="section-title" id="resume-title">03 / Résumé</h2><div class="resume-modes" role="group" aria-label="Résumé view" hidden><button type="button" class="chip active" data-resume-mode="chronological" aria-pressed="true">Chronological</button><button type="button" class="chip" data-resume-mode="relevance" aria-pressed="false">By relevance</button></div></div>
+ <div class="section-head"><h2 class="section-title" id="resume-title">03 / Résumé</h2><div class="resume-actions"><div class="resume-modes" role="group" aria-label="Résumé view" hidden><button type="button" class="chip active" data-resume-mode="chronological" aria-pressed="true">Chronological</button><button type="button" class="chip" data-resume-mode="relevance" aria-pressed="false">By relevance</button></div><button type="button" class="chip resume-print" data-print-resume hidden>Print / Save PDF</button></div></div>
  <div class="resume-document">
-  <header class="resume-heading"><h2>{site.profile.name}</h2><div class="resume-contact">{site.resume.contact.length?site.resume.contact.map(contact=>contact.url?<a href={contact.url}>{contact.label}</a>:<span>{contact.label}</span>):<span>Contact information pending</span>}</div></header>
+  <header class="resume-heading"><h2>{site.profile.name}</h2><div class="resume-contact">{site.resume.contact.length?site.resume.contact.map(contact=>contact.url?<a href={contact.url}>{contact.label}</a>:<span>{contact.label}</span>):<span data-resume-placeholder>Contact information pending</span>}</div></header>
   <p class="resume-fixed-intro">{site.resume.introduction}</p>
   <p class="resume-development-note">Development résumé · Fictional example evidence, not Drew’s approved career record. Contact and education details await supplied content.</p>
   <p class="resume-evidence-status" data-resume-status role="status" aria-live="polite">Selected professional evidence</p>
@@ -25,7 +26,7 @@ const activeNodes=pieces.map(p=>({id:p.id,competencies:p.data.competencies??[],a
    {independent.length>0&&<section class="resume-independent-evidence"><h3 class="resume-section-label">Independent projects</h3>{independent.map(id=>{const piece=pieces.find(p=>p.id===id)!;return <div><h4><a href={`/pieces/${id}/`}>{piece.data.title}</a></h4><ul class="resume-accomplishments" data-evidence-group={id}>{allOrdered.filter(e=>e.groupId===id).map(item=><EvidenceItem item={item}/>)}</ul></div>;})}</section>}
   </div>
   <div data-resume-view="relevance" hidden><h3 class="resume-section-label">Professional evidence</h3><p class="resume-relevance-note">Employer, role, and dates remain attached to every accomplishment. With no competencies selected, the curated default evidence is shown in editorial order.</p><ul class="resume-accomplishments relevance-evidence" data-relevance-evidence>{allOrdered.map(item=><EvidenceItem item={item} context/>)}</ul></div>
-  <section class="resume-education"><h3 class="resume-section-label">Education</h3>{site.resume.education.length?site.resume.education.map(item=><p><strong>{item.qualification}</strong><br/>{item.institution}{item.period&&` · ${item.period}`}</p>):<p class="resume-pending">Education details not yet supplied for this demonstration.</p>}</section>
+  <section class="resume-education" data-resume-placeholder={site.resume.education.length?undefined:true}><h3 class="resume-section-label">Education</h3>{site.resume.education.length?site.resume.education.map(item=><p><strong>{item.qualification}</strong><br/>{item.institution}{item.period&&` · ${item.period}`}</p>):<p class="resume-pending">Education details not yet supplied for this demonstration.</p>}</section>
  </div>
  <script type="application/json" id="resume-data" set:html={JSON.stringify({evidence,nodes:activeNodes}).replace(/</g,'\\u003c')}/>
 </section>

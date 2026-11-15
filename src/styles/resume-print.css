@@ -1,0 +1,45 @@
+/* A small screen control; every document rule below is print-only. */
+.resume-actions{display:flex;align-items:center;gap:7px 16px;flex-wrap:wrap}
+@page{size:Letter;margin:.6in .65in}
+@media print{
+ /* Direct children ensure the directory, map legend, and future homepage sections
+    cannot leak into a résumé printout. Hidden evidence/views stay hidden. */
+ body:has(#resume) .wrap>main>:not(#resume),
+ #resume>.section-head,
+ #resume .resume-development-note,
+ #resume .resume-evidence-status,
+ #resume .resume-relevance-note,
+ #resume .additional-evidence,
+ #resume [data-resume-placeholder],
+ body:has(#resume)>.skip-link,
+ astro-dev-toolbar{display:none!important}
+ body:has(#resume){background:#fff;color:#202522;font-size:11pt}
+ body:has(#resume) .wrap{max-width:none;width:auto;padding:0;margin:0}
+ #resume{border:0;padding:0;margin:0}
+ #resume .resume-document{max-width:none;margin:0;font-size:11pt;line-height:1.4}
+ #resume .resume-heading{padding:0 0 10pt;border-color:#202522;break-inside:avoid;break-after:avoid}
+ #resume .resume-heading h2{font-size:25pt;margin:0 0 5pt;line-height:1.1}
+ #resume .resume-contact{font-size:9pt;gap:4pt 12pt;color:#202522}
+ #resume .resume-fixed-intro{font-size:11pt;line-height:1.45;margin:12pt 0 16pt;max-width:none}
+ #resume .resume-section-label{font-size:9pt;margin:18pt 0 11pt;padding-bottom:5pt;color:#202522;break-after:avoid}
+ /* Keep ordinary job entries together; browsers may split entries taller than a page. */
+ #resume .resume-role-block{margin-bottom:16pt;break-inside:avoid}
+ #resume .resume-role-heading{display:flex;justify-content:space-between;align-items:baseline;gap:12pt;break-inside:avoid;break-after:avoid}
+ #resume .resume-role-heading h4{font-size:11pt;line-height:1.25;margin:0 0 3pt}
+ #resume .resume-role-heading a{font-size:10pt}
+ #resume .resume-role-heading>span{font-size:9pt;white-space:nowrap;margin:0;color:#202522}
+ #resume .resume-job-summary{font-size:9.5pt;margin:5pt 0 6pt;color:#202522;break-after:avoid}
+ #resume .resume-accomplishments{margin:6pt 0 0;padding-left:14pt}
+ #resume .resume-accomplishments>li{font-size:10pt;line-height:1.45;padding:0 0 5pt;margin:0 0 3pt;break-inside:avoid}
+ #resume .evidence-muted,#resume .evidence-muted .evidence-text{color:#202522;opacity:1}
+ #resume .evidence-source{display:inline!important;margin-left:5pt;font-size:8pt;font-weight:500;white-space:nowrap;color:#202522}
+ #resume a{color:#202522;text-decoration:underline;text-decoration-thickness:.5pt;text-underline-offset:2pt}
+ #resume .resume-independent-evidence h4{font-size:10.5pt;margin:12pt 0 0;break-after:avoid}
+ #resume .relevance-evidence{list-style:none;padding-left:0}
+ #resume .relevance-evidence>li{padding:4pt 0 6pt;margin:0;border-color:#c9cbc3}
+ #resume .evidence-context{display:block;font-size:9.5pt;line-height:1.35;margin:0 0 4pt;break-after:avoid}
+ #resume .evidence-context>span{display:block;font-size:9pt;color:#202522;margin-top:3pt}
+ #resume .resume-education{margin-top:16pt}
+ #resume .resume-education p{font-size:10pt;break-inside:avoid}
+ #resume p,#resume li{orphans:3;widows:3}
+}

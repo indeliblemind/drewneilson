@@ -7,6 +7,19 @@ if(root&&payload){
  const selected=new Set<string>();let mode:ResumeMode='chronological';
  const modeButtons=[...root.querySelectorAll<HTMLButtonElement>('[data-resume-mode]')];
  const competencyButtons=[...document.querySelectorAll<HTMLButtonElement>('[data-competency]')];
+ const printButton=root.querySelector<HTMLButtonElement>('[data-print-resume]');
+ printButton?.addEventListener('click',()=>window.print());
+ if(printButton)printButton.hidden=false;
+ // Printing reads the current DOM: no filter, mode, or evidence state is changed.
+ let titleBeforePrint:string|null=null;
+ window.addEventListener('beforeprint',()=>{
+  if(titleBeforePrint===null)titleBeforePrint=document.title;
+  document.title=`${root.querySelector('.resume-heading h2')?.textContent?.trim()||'Portfolio'} — Résumé`;
+ });
+ window.addEventListener('afterprint',()=>{
+  if(titleBeforePrint!==null){document.title=titleBeforePrint;titleBeforePrint=null;}
+ });
+
  function update(){
   const tags=[...selected];const ranked=presentEvidence(data.evidence,tags,mode);const rows=new Map(ranked.map(item=>[item.id,item]));
   root!.querySelectorAll<HTMLElement>('[data-evidence-id]').forEach(row=>{
