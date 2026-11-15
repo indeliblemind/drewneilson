@@ -1,5 +1,6 @@
 ---
 import {render,type CollectionEntry} from 'astro:content';
+import '../../styles/article.css';
 import Base from '../../layouts/ConnectedWork.astro';
 import ConnectedHeader from '../../components/ConnectedHeader.astro';
 import {getPortfolio,kindLabel,edgeLabel,type Edge} from '../../lib/content';
@@ -9,7 +10,37 @@ const {piece,pieces,edges}=Astro.props;const {Content}=await render(piece);
 const related=edges.filter(e=>e.source===piece.id||e.target===piece.id);
 ---
 <Base title={piece.data.title} description={piece.data.summary}>
- <ConnectedHeader/><p class="demo-banner"><strong>INTERACTION DEMONSTRATION</strong> Existing fictional and test content.</p><article class="page-body"><a href="/#map">← Explore the collection</a><p class="kicker" style="margin-top:30px">{kindLabel(piece.data.kind)}{piece.data.status && ` · ${piece.data.status}`}</p><h1>{piece.data.title}</h1>{piece.data.role && <p>{piece.data.role}</p>}<p class="lead">{piece.data.summary}</p>{piece.data.attribution && <p>{piece.data.attribution}</p>}<Content/>
- <aside class="node-connections" aria-label="Connections"><h2>Connections</h2>{related.length ? <ul>{related.map(edge=>{const other=pieces.find(p=>p.id===(edge.source===piece.id?edge.target:edge.source))!;return <li><span class="connection-relation">{edgeLabel(edge,piece.id)}</span> <a href={`/pieces/${other.id}/`}>{other.data.title}</a><small>{kindLabel(other.data.kind)}</small>{edge.label && <p>{edge.label}</p>}</li>;})}</ul>:<p>This subject stands on its own. A connection isn’t required.</p>}<a class="textlink" href="/#map">Explore the map ↗</a></aside>
+ <ConnectedHeader/><p class="demo-banner"><strong>INTERACTION DEMONSTRATION</strong> Existing fictional and test content.</p>
+ <article class="page-body">
+  <a class="article-back" href="/#map">← Explore the collection</a>
+  <header class="article-opening">
+   <p class="kicker">{kindLabel(piece.data.kind)}{piece.data.status && ` · ${piece.data.status}`}</p>
+   <h1>{piece.data.title}</h1>
+   {piece.data.role && <p class="article-role">{piece.data.role}</p>}
+   <p class="lead">{piece.data.summary}</p>
+   {piece.data.attribution && <p class="article-attribution">{piece.data.attribution}</p>}
+  </header>
+  <div class="article-prose"><Content/></div>
+  <aside class="node-connections" aria-label="Connections">
+   <h2>Connections</h2>
+   {related.length ? <ul>{related.map(edge=>{const other=pieces.find(p=>p.id===(edge.source===piece.id?edge.target:edge.source))!;return <li><span class="connection-relation">{edgeLabel(edge,piece.id)}</span><a class="connection-title" href={`/pieces/${other.id}/`}>{other.data.title}</a><small>{kindLabel(other.data.kind)}</small>{edge.label && <p class="connection-note">{edge.label}</p>}</li>;})}</ul>:<p class="connections-empty">This subject stands on its own. A connection isn’t required.</p>}
+   <a class="textlink" href="/#map">Explore the map ↗</a>
+  </aside>
  </article>
 </Base>
+<script>
+ // Enhance native tables with a named, keyboard-scrollable viewport. No author wrappers.
+ document.querySelectorAll<HTMLParagraphElement>('.article-prose blockquote p:last-child').forEach(paragraph=>{
+  if(/^[—–]\s/.test(paragraph.textContent?.trim()||''))paragraph.classList.add('quote-attribution');
+ });
+ const containers=[...document.querySelectorAll<HTMLTableElement>('.article-prose table')].map((table,index)=>{
+  const container=document.createElement('div');container.className='article-table-scroll';
+  const heading=table.previousElementSibling;
+  container.setAttribute('role','region');
+  container.setAttribute('aria-label',table.caption?.textContent||(heading?.matches('h2,h3,h4')?heading.textContent:null)||`Table ${index+1}`);
+  table.before(container);container.append(table);return container;
+ });
+ const updateTableFocus=()=>containers.forEach(container=>{if(container.scrollWidth>container.clientWidth+1)container.tabIndex=0;else container.removeAttribute('tabindex');});
+ const observer=new ResizeObserver(updateTableFocus);containers.forEach(container=>observer.observe(container));
+ updateTableFocus();
+</script>
