@@ -14,7 +14,7 @@ summary: "A short description."
 Write here in ordinary Markdown.
 ```
 
-This minimal record is a draft. Add `draft: false` to make it visible locally. Missing lists default to `[]`; missing new text fields remain absent. There are no automatically generated headings for these new fields. Use the body for quotations, images, experiments, and narrative sections. Descriptors are plain strings; use YAML `|` or `>` for multiline text.
+This minimal record is a draft. Add `draft: false` to make it visible locally. Missing lists default to `[]`; missing new text fields remain absent. Descriptor fields do not generate article-body headings. The opening uses `headline` when provided and appends only explicitly supplied `headlineHighlights`. Use the body for quotations, images, experiments, and narrative sections. Descriptors are plain strings; use YAML `|` or `>` for multiline text.
 
 ## Common fields
 
@@ -25,7 +25,9 @@ This minimal record is a draft. Add `draft: false` to make it visible locally. M
 | summary | Short description used in existing previews and pages | Yes |
 | label | Short map/directory label; title is fallback | No |
 | subtitle | Secondary description, stored for future display | No; new |
-| headline | Editorial headline; does not replace title automatically | No; new |
+| headline | Interior headline; falls back to title. Record name/previews remain unchanged | No |
+| headlineHighlights | List of explicit ochre headline lines appended after the plain headline; omit for no highlights | No; default `[]` |
+| introduction | Interior opening summary; falls back to summary. Use `""` to omit the introduction | No |
 | startDate | Quoted `YYYY` or `YYYY-MM`; timeline start for Jobs | No |
 | endDate | Quoted `YYYY` or `YYYY-MM`; omit for ongoing work | No |
 | period | Readable chronology fallback; existing parser recognizes year ranges | No |
@@ -36,6 +38,8 @@ This minimal record is a draft. Add `draft: false` to make it visible locally. M
 | accomplishments | Existing structured résumé evidence; nonempty lists on Jobs/Projects only | No; default `[]` |
 | draft | Publication control; true excludes page/node and visible connections | No; default `true` |
 | attribution | Existing collaborator/contribution credit, rendered on record page | No |
+
+The small opening label uses `recordClass` when provided (for example, “Case study”), otherwise the node kind, followed by `label` or `title`.
 
 The single collection keeps all fields available without introducing type-specific databases. The fields below are conventions for the corresponding kind, not extra required form sections. Existing `role` remains accepted on any kind.
 

@@ -27,9 +27,13 @@ draft: true
 # Uncomment by removing the leading # and space.
 # label: "Short name"
 
-# OPTIONAL: secondary description and editorial headline (stored, not automatically rendered).
+# OPTIONAL: secondary description (stored) and interior-page editorial headline.
 # subtitle: "A secondary description"
 # headline: "An editorial headline"
+# Optional ochre lines appended to the headline; omit for an ordinary headline.
+# headlineHighlights: ["A highlighted conclusion", "A second line"]
+# Optional interior introduction; defaults to summary. Empty string hides it.
+# introduction: "A longer opening, separate from the short preview summary."
 # OPTIONAL Job details; employer falls back to title in the résumé.
 # employer: "Fictional organization"
 # location: "Fictional Northport"

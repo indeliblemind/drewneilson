@@ -9,9 +9,13 @@ draft: true
 
 # Optional: short map label; falls back to title.
 # label: "Short name"
-# Optional secondary description and editorial headline; stored for future use.
+# Optional secondary description (stored) and interior-page editorial headline.
 # subtitle: "A secondary description"
 # headline: "An editorial headline"
+# Optional ochre lines appended to the headline; omit for an ordinary headline.
+# headlineHighlights: ["A highlighted conclusion", "A second line"]
+# Optional interior introduction; defaults to summary. Empty string hides it.
+# introduction: "A longer opening, separate from the short preview summary."
 # Optional real-world status, not a publishing control.
 # status: "In progress"
 # Optional chronology: quote dates, use YYYY or YYYY-MM; omit unknown dates.

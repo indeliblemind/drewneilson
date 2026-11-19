@@ -7,6 +7,8 @@ const pieces = defineCollection({
  schema: z.object({
   title: z.string().min(1), label: z.string().optional(),
   subtitle: z.string().optional(), headline: z.string().optional(),
+  headlineHighlights: z.array(z.string().trim().min(1)).default([]),
+  introduction: z.string().optional(),
   kind: z.enum(['job', 'project', 'idea']), summary: z.string().min(1),
   status: z.string().optional(), role: z.string().optional(), attribution: z.string().optional(),
   // Optional descriptors stay in frontmatter; the Markdown body remains the narrative.
